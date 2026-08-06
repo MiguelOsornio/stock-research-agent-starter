@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: stock-research-agent-starter
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: RESEARCH_DELAY_MS
+        value: "8000"

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stock research starter</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <h1>Stock research</h1>
+      <p class="lede">
+        Enter a ticker. Research runs inside this request until the memo is ready.
+      </p>
+      <form id="research-form">
+        <label for="ticker">Ticker</label>
+        <div class="row">
+          <input
+            id="ticker"
+            name="ticker"
+            value="NVDA"
+            maxlength="8"
+            autocomplete="off"
+            required
+          />
+          <button type="submit" id="submit">Research</button>
+        </div>
+        <p class="hint">Mock tickers: NVDA, AAPL, MSFT</p>
+      </form>
+      <p id="status" class="status" hidden></p>
+      <pre id="memo" class="memo" hidden></pre>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
