@@ -1,70 +1,23 @@
+import {
+  hideTracker,
+  markTrackerDone,
+  setTrackerMode,
+  startTimedTracker,
+  stopTrackerTicks,
+  syncTrackerFromStartedAt,
+} from "./tracker.js"
+
+const KEY = "stockResearchTaskRunId"
+const KEY_STARTED = "stockResearchStartedAt"
 const form = document.getElementById("research-form")
 const tickerInput = document.getElementById("ticker")
 const submit = document.getElementById("submit")
 const statusEl = document.getElementById("status")
 const memoEl = document.getElementById("memo")
-const trackerEl = document.getElementById("tracker")
-const trackerLabel = document.getElementById("tracker-label")
-const trackerPercent = document.getElementById("tracker-percent")
-const trackerFill = document.getElementById("tracker-fill")
-const trackerSteps = [...document.querySelectorAll("#tracker-steps [data-step]")]
-
-const STEPS = [
-  "Load company facts",
-  "Collect signals",
-  "Identify catalysts",
-  "Identify risks",
-  "Write memo",
-]
-
-let trackerTimer = null
 
 function setStatus(text) {
   statusEl.hidden = !text
   statusEl.textContent = text
-}
-
-function setTracker(stepIndex, { done = false } = {}) {
-  const maxIndex = STEPS.length - 1
-  const clamped = Math.max(0, Math.min(stepIndex, maxIndex))
-  const percent = done ? 100 : Math.round((clamped / STEPS.length) * 100)
-
-  trackerEl.hidden = false
-  trackerLabel.textContent = done ? "Memo ready" : STEPS[clamped]
-  trackerPercent.textContent = `${percent}%`
-  trackerFill.style.width = `${percent}%`
-  trackerFill.classList.toggle("is-active", !done)
-
-  for (const el of trackerSteps) {
-    const index = Number(el.dataset.step)
-    el.classList.toggle("is-done", done || index < clamped)
-    el.classList.toggle("is-active", !done && index === clamped)
-  }
-}
-
-function startTracker() {
-  stopTracker()
-  let step = 0
-  setTracker(step)
-  // Visual only: request ownership is unchanged. Stages advance while POST is pending.
-  trackerTimer = window.setInterval(() => {
-    if (step >= STEPS.length - 1) return
-    step += 1
-    setTracker(step)
-  }, 1400)
-}
-
-function stopTracker() {
-  if (trackerTimer != null) {
-    window.clearInterval(trackerTimer)
-    trackerTimer = null
-  }
-  trackerFill.classList.remove("is-active")
-}
-
-function hideTracker() {
-  stopTracker()
-  trackerEl.hidden = true
 }
 
 function renderMemo(memo) {
@@ -86,12 +39,69 @@ function renderMemo(memo) {
   ].join("\n")
 }
 
+function saveRun(taskRunId, startedAtMs) {
+  localStorage.setItem(KEY, taskRunId)
+  localStorage.setItem(KEY_STARTED, String(startedAtMs))
+}
+
+function clearRun() {
+  localStorage.removeItem(KEY)
+  localStorage.removeItem(KEY_STARTED)
+}
+
+function startedAtFrom(data, fallbackMs) {
+  if (data?.startedAt) {
+    const parsed = Date.parse(data.startedAt)
+    if (!Number.isNaN(parsed)) return parsed
+  }
+  return fallbackMs
+}
+
+/**
+ * Polls Workflow status and keeps the tracker aligned with elapsed research time.
+ */
+async function pollUntilDone(taskRunId) {
+  setTrackerMode("durable")
+  const storedStarted = Number(localStorage.getItem(KEY_STARTED) || "")
+  let startedAtMs = Number.isFinite(storedStarted) ? storedStarted : Date.now()
+
+  while (true) {
+    const res = await fetch(`/api/research/${taskRunId}`)
+    const data = await res.json()
+
+    if (!res.ok && data.status !== "failed" && data.status !== "canceled") {
+      throw new Error(data.error || "Status check failed")
+    }
+
+    startedAtMs = startedAtFrom(data, startedAtMs)
+    localStorage.setItem(KEY_STARTED, String(startedAtMs))
+
+    if (data.status === "completed") {
+      markTrackerDone()
+      setStatus(`Completed (${taskRunId})`)
+      renderMemo(data.memo)
+      return
+    }
+
+    if (data.status === "failed" || data.status === "canceled") {
+      hideTracker()
+      clearRun()
+      throw new Error(data.error || `Research ${data.status}`)
+    }
+
+    syncTrackerFromStartedAt(startedAtMs)
+    setStatus(`Status: ${data.status} (${taskRunId})`)
+    await new Promise((r) => setTimeout(r, 1000))
+  }
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault()
   memoEl.hidden = true
   submit.disabled = true
   setStatus("")
-  startTracker()
+  clearRun()
+  startTimedTracker()
 
   try {
     const res = await fetch("/api/research", {
@@ -101,8 +111,21 @@ form.addEventListener("submit", async (event) => {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || "Request failed")
-    stopTracker()
-    setTracker(STEPS.length - 1, { done: true })
+
+    // Workflow mode (tutorial after server change): receipt + poll.
+    if (data.taskRunId) {
+      stopTrackerTicks()
+      const startedAtMs = Date.now()
+      saveRun(data.taskRunId, startedAtMs)
+      syncTrackerFromStartedAt(startedAtMs)
+      await pollUntilDone(data.taskRunId)
+      return
+    }
+
+    // Starter mode: memo arrived on the same request.
+    stopTrackerTicks()
+    markTrackerDone()
+    setTrackerMode("request")
     setStatus("Done. Still no run ID: refresh loses this result.")
     renderMemo(data)
   } catch (err) {
@@ -112,3 +135,16 @@ form.addEventListener("submit", async (event) => {
     submit.disabled = false
   }
 })
+
+const existing = localStorage.getItem(KEY)
+if (existing) {
+  submit.disabled = true
+  setStatus(`Resuming ${existing}…`)
+  pollUntilDone(existing)
+    .catch((err) => {
+      setStatus(err instanceof Error ? err.message : "Resume failed")
+    })
+    .finally(() => {
+      submit.disabled = false
+    })
+}
