@@ -27,6 +27,30 @@
         </div>
         <p class="hint">Mock tickers: NVDA, AAPL, MSFT</p>
       </form>
+
+      <section id="tracker" class="tracker" hidden aria-live="polite">
+        <div class="tracker-head">
+          <div>
+            <p class="tracker-kicker">Live tracker</p>
+            <p id="tracker-label" class="tracker-label">Starting…</p>
+          </div>
+          <span id="tracker-percent" class="tracker-percent">0%</span>
+        </div>
+        <div class="tracker-bar" aria-hidden="true">
+          <div id="tracker-fill" class="tracker-fill"></div>
+        </div>
+        <ol id="tracker-steps" class="tracker-steps">
+          <li data-step="0">Load company facts</li>
+          <li data-step="1">Collect signals</li>
+          <li data-step="2">Identify catalysts</li>
+          <li data-step="3">Identify risks</li>
+          <li data-step="4">Write memo</li>
+        </ol>
+        <p class="tracker-note">
+          Bound to this open request. Close the tab and there is nothing to resume.
+        </p>
+      </section>
+
       <p id="status" class="status" hidden></p>
       <pre id="memo" class="memo" hidden></pre>
     </main>
