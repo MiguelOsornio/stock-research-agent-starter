@@ -4,7 +4,7 @@ Educational demo: enter a ticker, get a mock research memo. Research runs **insi
 
 For the tutorial that moves this onto Render Workflows, see the Render Tutorials site (`stock-research-with-workflows`).
 
-## Run
+## Run locally
 
 ```bash
 npm install
@@ -15,12 +15,12 @@ Open `http://localhost:3000`. Mock tickers: `NVDA`, `AAPL`, `MSFT`.
 
 `RESEARCH_DELAY_MS` (default `8000`) controls how long a run takes so you can close the browser mid-request.
 
-## Deploy
+## Deploy (workshop / fork)
 
-### 1. Namespace your fork (attendees)
+### 1. Make your Blueprint names unique
 
 After you fork, run the **Setup attendee Blueprint names** GitHub Action
-(`workflow_dispatch`), or locally:
+(Actions tab → Run workflow), or locally:
 
 ```bash
 npm install
@@ -36,3 +36,14 @@ prefix). Commit and push if you ran setup locally.
 Deploy is **not** done from GitHub. In the [Dashboard](https://dashboard.render.com):
 **New → Blueprint**, select your fork, leave the Blueprint path as `render.yaml`,
 and Apply. That creates `{username}-renderatl-workshop` in your Render workspace.
+
+## Key files
+
+| File | What it is |
+| --- | --- |
+| `src/server.ts` | Web server: UI + `POST /api/research` |
+| `src/research-stock.ts` | Mock research pipeline (kept the same in later tutorial steps) |
+| `src/workflows.ts` | Placeholder; tutorial wraps research in a Workflow `task()` |
+| `render.yaml` | Blueprint recipe for Render |
+| `scripts/setup-attendee.js` | Renames Blueprint resources for your username |
+| `.github/workflows/setup-attendee.yml` | One-click GitHub Action that runs the setup script |

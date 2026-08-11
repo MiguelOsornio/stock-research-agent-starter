@@ -1,11 +1,15 @@
 # yaml-language-server: $schema=https://render.com/schema/render.yaml.json
 #
-# Stock research starter web service.
-# After forking, run the Setup attendee Blueprint names Action (or
-# `npm run setup -- your-github-username`) so the Render project becomes
-# `{username}-renderatl-workshop`. Then deploy from the Dashboard or CLI.
+# Render Blueprint: one project + one web service.
+#
+# Before deploying a fork, namespace resources:
+#   Actions → "Setup attendee Blueprint names" → Run workflow
+#   or: npm run setup -- your-github-username
+# That sets the project to {username}-renderatl-workshop.
+# Then deploy from the Dashboard (New → Blueprint) or CLI.
 
 projects:
+  # After setup: {username}-renderatl-workshop
   - name: renderatl-workshop
     environments:
       - name: production
@@ -20,5 +24,6 @@ projects:
             envVars:
               - key: NODE_VERSION
                 value: "20"
+              # Delay so you can close the tab mid-run in the tutorial.
               - key: RESEARCH_DELAY_MS
                 value: "8000"

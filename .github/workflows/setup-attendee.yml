@@ -1,3 +1,9 @@
+# Setup attendee Blueprint names
+#
+# Manual workflow (Actions → Run workflow). Edits render.yaml so the project
+# becomes {username}-renderatl-workshop, then commits to the fork.
+# Does not deploy: use Render Dashboard → New → Blueprint (or the CLI) after.
+
 name: Setup attendee Blueprint names
 
 on:
@@ -12,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Never rewrite names on the upstream starter's main branch.
       - name: Refuse upstream main
         if: ${{ github.repository == 'ojusave/stock-research-agent-starter' && github.ref_name == 'main' }}
         run: |
@@ -31,6 +38,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Uses GITHUB_ACTOR as the namespace.
       - name: Namespace Blueprint resources
         run: npm run setup
 
