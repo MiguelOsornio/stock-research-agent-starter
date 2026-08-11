@@ -20,6 +20,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 // Parse JSON bodies like: { "ticker": "NVDA" }
 app.use(express.json())
 
+// Status polling must not be cached (browsers otherwise get 304 + empty body).
+app.use("/api", (_req, res, next) => {
+  res.set("Cache-Control", "no-store")
+  next()
+})
+
 // Serve index.html, app.js, CSS, etc. from /public
 app.use(express.static(join(root, "public")))
 

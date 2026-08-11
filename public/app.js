@@ -58,6 +58,28 @@ function startedAtFrom(data, fallbackMs) {
 }
 
 /**
+ * Read a fetch Response as JSON without throwing opaque parse errors.
+ * Uses cache: 'no-store' on callers so status polling is not served a 304.
+ */
+async function readJson(res) {
+  const text = await res.text()
+  if (!text) {
+    throw new Error(
+      `Empty response (${res.status}). Try a hard refresh; if this was a resumed run, it was cleared.`,
+    )
+  }
+  try {
+    return JSON.parse(text)
+  } catch {
+    const snippet = text.trim().slice(0, 80)
+    throw new Error(
+      `Server returned non-JSON (${res.status}): ${snippet}. ` +
+        `If you were resuming an old run, clear site data for this page and try again.`,
+    )
+  }
+}
+
+/**
  * Polls Workflow status and keeps the tracker aligned with elapsed research time.
  */
 async function pollUntilDone(taskRunId) {
@@ -66,8 +88,8 @@ async function pollUntilDone(taskRunId) {
   let startedAtMs = Number.isFinite(storedStarted) ? storedStarted : Date.now()
 
   while (true) {
-    const res = await fetch(`/api/research/${taskRunId}`)
-    const data = await res.json()
+    const res = await fetch(`/api/research/${taskRunId}`, { cache: "no-store" })
+    const data = await readJson(res)
 
     if (!res.ok && data.status !== "failed" && data.status !== "canceled") {
       throw new Error(data.error || "Status check failed")
@@ -108,8 +130,9 @@ form.addEventListener("submit", async (event) => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ ticker: tickerInput.value }),
+      cache: "no-store",
     })
-    const data = await res.json()
+    const data = await readJson(res)
     if (!res.ok) throw new Error(data.error || "Request failed")
 
     // Workflow mode (tutorial after server change): receipt + poll.
@@ -130,6 +153,7 @@ form.addEventListener("submit", async (event) => {
     renderMemo(data)
   } catch (err) {
     hideTracker()
+    clearRun()
     setStatus(err instanceof Error ? err.message : "Request failed")
   } finally {
     submit.disabled = false
@@ -142,7 +166,14 @@ if (existing) {
   setStatus(`Resuming ${existing}…`)
   pollUntilDone(existing)
     .catch((err) => {
-      setStatus(err instanceof Error ? err.message : "Resume failed")
+      // Stale IDs (or starter hosts without a status route) should not brick the page.
+      clearRun()
+      hideTracker()
+      setStatus(
+        err instanceof Error
+          ? `${err.message} Cleared the saved run. Submit again.`
+          : "Resume failed. Cleared the saved run. Submit again.",
+      )
     })
     .finally(() => {
       submit.disabled = false
