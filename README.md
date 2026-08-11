@@ -17,4 +17,22 @@ Open `http://localhost:3000`. Mock tickers: `NVDA`, `AAPL`, `MSFT`.
 
 ## Deploy
 
-Use the Blueprint in `render.yaml` or the Deploy to Render button from the tutorial.
+### 1. Namespace your fork (attendees)
+
+After you fork, run the **Setup attendee Blueprint names** GitHub Action
+(`workflow_dispatch`), or locally:
+
+```bash
+npm install
+npm run setup -- your-github-username
+```
+
+That rewrites `render.yaml` so the Render **project** is
+`your-github-username-renderatl-workshop` (and the web service gets a username
+prefix). Commit and push if you ran setup locally.
+
+### 2. Deploy from the Render Dashboard or CLI
+
+Deploy is **not** done from GitHub. In the [Dashboard](https://dashboard.render.com):
+**New → Blueprint**, select your fork, leave the Blueprint path as `render.yaml`,
+and Apply. That creates `{username}-renderatl-workshop` in your Render workspace.

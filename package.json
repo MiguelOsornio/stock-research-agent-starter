@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "setup": "node scripts/setup-attendee.js",
     "start": "tsx src/server.ts",
     "build": "tsc -p tsconfig.json --noEmit",
     "workflow:start": "tsx src/workflows.ts"
@@ -12,7 +13,8 @@
     "node": ">=20"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
