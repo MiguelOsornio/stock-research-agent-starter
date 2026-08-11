@@ -13,6 +13,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@renderinc/sdk": "^0.5.1",
     "express": "^4.21.2",
     "yaml": "^2.9.0"
   },
