@@ -7,8 +7,11 @@ import {
   syncTrackerFromStartedAt,
 } from "./tracker.js"
 
-const KEY = "stockResearchTaskRunId"
-const KEY_STARTED = "stockResearchStartedAt"
+// Bump this key if stored runs become incompatible. Old keys are ignored
+// automatically so attendees never need to clear site data by hand.
+const KEY = "stockResearchTaskRunId.v2"
+const KEY_STARTED = "stockResearchStartedAt.v2"
+
 const form = document.getElementById("research-form")
 const tickerInput = document.getElementById("ticker")
 const submit = document.getElementById("submit")
@@ -57,25 +60,33 @@ function startedAtFrom(data, fallbackMs) {
   return fallbackMs
 }
 
-/**
- * Read a fetch Response as JSON without throwing opaque parse errors.
- * Uses cache: 'no-store' on callers so status polling is not served a 304.
- */
+/** Parse JSON from a fetch Response. Throws a short, human message on failure. */
 async function readJson(res) {
   const text = await res.text()
   if (!text) {
-    throw new Error(
-      `Empty response (${res.status}). Try a hard refresh; if this was a resumed run, it was cleared.`,
-    )
+    throw new Error(`Empty response (${res.status})`)
   }
   try {
     return JSON.parse(text)
   } catch {
-    const snippet = text.trim().slice(0, 80)
-    throw new Error(
-      `Server returned non-JSON (${res.status}): ${snippet}. ` +
-        `If you were resuming an old run, clear site data for this page and try again.`,
-    )
+    throw new Error(`Unexpected response (${res.status})`)
+  }
+}
+
+/**
+ * One status check. Returns parsed JSON on success, or null if this host
+ * cannot resume (starter mode, stale id, non-JSON 404, etc.).
+ */
+async function peekStatus(taskRunId) {
+  try {
+    const res = await fetch(`/api/research/${taskRunId}`, { cache: "no-store" })
+    const data = await readJson(res)
+    if (!res.ok && data.status !== "failed" && data.status !== "canceled") {
+      return null
+    }
+    return data
+  } catch {
+    return null
   }
 }
 
@@ -102,6 +113,7 @@ async function pollUntilDone(taskRunId) {
       markTrackerDone()
       setStatus(`Completed (${taskRunId})`)
       renderMemo(data.memo)
+      clearRun()
       return
     }
 
@@ -112,7 +124,7 @@ async function pollUntilDone(taskRunId) {
     }
 
     syncTrackerFromStartedAt(startedAtMs)
-    setStatus(`Status: ${data.status} (${taskRunId})`)
+    setStatus(`Status: ${data.status}`)
     await new Promise((r) => setTimeout(r, 1000))
   }
 }
@@ -135,7 +147,7 @@ form.addEventListener("submit", async (event) => {
     const data = await readJson(res)
     if (!res.ok) throw new Error(data.error || "Request failed")
 
-    // Workflow mode (tutorial after server change): receipt + poll.
+    // Workflow mode: receipt + poll.
     if (data.taskRunId) {
       stopTrackerTicks()
       const startedAtMs = Date.now()
@@ -145,7 +157,7 @@ form.addEventListener("submit", async (event) => {
       return
     }
 
-    // Starter mode: memo arrived on the same request.
+    // Starter mode: memo on the same request.
     stopTrackerTicks()
     markTrackerDone()
     setTrackerMode("request")
@@ -160,22 +172,39 @@ form.addEventListener("submit", async (event) => {
   }
 })
 
-const existing = localStorage.getItem(KEY)
-if (existing) {
+/**
+ * Resume a saved Workflow run if possible.
+ * If the saved id is stale or this host has no status route, clear it quietly
+ * and leave a blank form. Attendees should never need DevTools for this.
+ */
+async function maybeResume() {
+  const existing = localStorage.getItem(KEY)
+  if (!existing) return
+
   submit.disabled = true
-  setStatus(`Resuming ${existing}…`)
-  pollUntilDone(existing)
-    .catch((err) => {
-      // Stale IDs (or starter hosts without a status route) should not brick the page.
-      clearRun()
-      hideTracker()
-      setStatus(
-        err instanceof Error
-          ? `${err.message} Cleared the saved run. Submit again.`
-          : "Resume failed. Cleared the saved run. Submit again.",
-      )
-    })
-    .finally(() => {
-      submit.disabled = false
-    })
+  setStatus("Resuming previous run…")
+
+  const first = await peekStatus(existing)
+  if (!first) {
+    clearRun()
+    hideTracker()
+    setStatus("")
+    submit.disabled = false
+    return
+  }
+
+  try {
+    // Re-enter the poll loop with the already-fetched first payload path:
+    // simplest is to call pollUntilDone, which hits the API again immediately.
+    syncTrackerFromStartedAt(startedAtFrom(first, Date.now()))
+    await pollUntilDone(existing)
+  } catch {
+    clearRun()
+    hideTracker()
+    setStatus("")
+  } finally {
+    submit.disabled = false
+  }
 }
+
+maybeResume()

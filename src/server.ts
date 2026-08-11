@@ -26,8 +26,16 @@ app.use("/api", (_req, res, next) => {
   next()
 })
 
-// Serve index.html, app.js, CSS, etc. from /public
-app.use(express.static(join(root, "public")))
+// Keep UI JS fresh after deploys so attendees are not stuck on an old app.js.
+app.use(
+  express.static(join(root, "public"), {
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".js") || filePath.endsWith(".html")) {
+        res.set("Cache-Control", "no-cache")
+      }
+    },
+  }),
+)
 
 /**
  * Health check for Render (and for you).
