@@ -1,32 +1,17 @@
 /**
- * =============================================================================
- * setup-attendee.js  (for absolute beginners)
- * =============================================================================
+ * setup-attendee.js
  *
- * WHAT THIS FILE DOES (in plain English)
- * --------------------------------------
- * When many people deploy the same starter app to Render, they can accidentally
- * create services with the SAME names and collide with each other.
+ * Rewrites render.yaml so each fork gets unique Render resource names:
  *
- * This script rewrites `render.yaml` so YOUR copy is unique:
+ *   Project  →  {username}-renderatl-workshop
+ *   Service  →  {username}-stock-research-agent-starter
  *
- *   Project name  →  yourusername-renderatl-workshop
- *   Web service   →  yourusername-stock-research-agent-starter
- *
- * HOW TO RUN IT
- * -------------
- * Locally (replace with your GitHub username):
- *
- *   npm install
+ * Run locally:
  *   npm run setup -- your-github-username
  *
- * Or on GitHub: Actions → "Setup attendee Blueprint names" → Run workflow
+ * Or: GitHub Actions → "Setup attendee Blueprint names" → Run workflow
  *
- * AFTER THIS SCRIPT
- * -----------------
- * Deploy from the Render Dashboard (New → Blueprint) or the Render CLI.
- * The Action / this script does NOT deploy for you.
- * =============================================================================
+ * This script does not deploy. Deploy from the Render Dashboard or CLI after.
  */
 
 import { readFile, writeFile } from 'node:fs/promises'

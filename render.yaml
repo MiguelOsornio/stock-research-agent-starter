@@ -1,45 +1,29 @@
 # yaml-language-server: $schema=https://render.com/schema/render.yaml.json
 #
-# =============================================================================
-# render.yaml  (Render Blueprint)
-# =============================================================================
-# FOR BEGINNERS
-# -------------
-# This file is a recipe that tells Render what to create when you click
-# "New → Blueprint" in the Dashboard (or deploy with the Render CLI).
+# Render Blueprint: one project + one web service.
 #
-# BEFORE you deploy (if you forked this for a workshop):
-#   1. Run Actions → "Setup attendee Blueprint names" → Run workflow
-#      OR: npm run setup -- your-github-username
-#   2. That renames the project to: your-github-username-renderatl-workshop
-#   3. THEN deploy from the Dashboard or CLI (this file alone does not deploy).
-#
-# What Render creates from this recipe:
-#   • One Render project (folder in the Dashboard)
-#   • One web service that runs this Node app
-# =============================================================================
+# Before deploying a fork, namespace resources:
+#   Actions → "Setup attendee Blueprint names" → Run workflow
+#   or: npm run setup -- your-github-username
+# That sets the project to {username}-renderatl-workshop.
+# Then deploy from the Dashboard (New → Blueprint) or CLI.
 
 projects:
-  # Project name BEFORE attendee setup. After setup it becomes:
-  #   {your-username}-renderatl-workshop
+  # After setup: {username}-renderatl-workshop
   - name: renderatl-workshop
     environments:
       - name: production
         services:
-          # The public web app (ticker form + /api/research).
           - type: web
             name: stock-research-agent-starter
             runtime: node
             plan: starter
-            # Install packages, then start the server (see package.json scripts).
             buildCommand: npm install
             startCommand: npm start
-            # Render checks this path to know the service is healthy.
             healthCheckPath: /healthz
             envVars:
-              # Use Node 20 on Render's build machines.
               - key: NODE_VERSION
                 value: "20"
-              # How long a research run waits (ms). Higher = easier to close the tab mid-run.
+              # Delay so you can close the tab mid-run in the tutorial.
               - key: RESEARCH_DELAY_MS
                 value: "8000"

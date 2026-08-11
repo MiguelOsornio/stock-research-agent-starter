@@ -4,12 +4,6 @@ Educational demo: enter a ticker, get a mock research memo. Research runs **insi
 
 For the tutorial that moves this onto Render Workflows, see the Render Tutorials site (`stock-research-with-workflows`).
 
-## Who this is for
-
-Absolute beginners are welcome. The TypeScript files under `src/` and the
-setup script under `scripts/` include plain-English comments that explain
-what each part does.
-
 ## Run locally
 
 ```bash

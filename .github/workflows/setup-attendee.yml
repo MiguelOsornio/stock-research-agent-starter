@@ -1,27 +1,14 @@
-# =============================================================================
-# GitHub Action: Setup attendee Blueprint names
-# =============================================================================
-# FOR BEGINNERS
-# -------------
-# This file tells GitHub Actions what to do when YOU click "Run workflow".
+# Setup attendee Blueprint names
 #
-# It does NOT deploy to Render.
-# It only edits render.yaml so your project name becomes:
-#   {your-github-username}-renderatl-workshop
-# Then it commits that change back to YOUR fork.
-#
-# After it finishes, you still deploy yourself:
-#   Render Dashboard → New → Blueprint → pick this fork → Apply
-# =============================================================================
+# Manual workflow (Actions → Run workflow). Edits render.yaml so the project
+# becomes {username}-renderatl-workshop, then commits to the fork.
+# Does not deploy: use Render Dashboard → New → Blueprint (or the CLI) after.
 
 name: Setup attendee Blueprint names
 
-# workflow_dispatch = "run this by hand" (Actions tab → Run workflow).
-# Nothing runs automatically on push or pull request.
 on:
   workflow_dispatch:
 
-# Allow this job to commit the updated render.yaml back to the fork.
 permissions:
   contents: write
 
@@ -31,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Safety: never rewrite names on the upstream starter's main branch.
+      # Never rewrite names on the upstream starter's main branch.
       - name: Refuse upstream main
         if: ${{ github.repository == 'ojusave/stock-research-agent-starter' && github.ref_name == 'main' }}
         run: |
@@ -39,26 +26,22 @@ jobs:
           echo "Refusing to namespace Blueprints on ${GITHUB_REPOSITORY} main."
           exit 1
 
-      # Download your fork's code onto the Actions runner.
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # Install Node.js so we can run the setup script.
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # Install npm packages listed in package.json (including the "yaml" library).
       - name: Install dependencies
         run: npm ci
 
-      # Rewrite render.yaml using your GitHub username (GITHUB_ACTOR).
+      # Uses GITHUB_ACTOR as the namespace.
       - name: Namespace Blueprint resources
         run: npm run setup
 
-      # Save the edited render.yaml on your fork's default branch.
       - name: Commit namespaced Blueprint
         run: |
           git config user.name "github-actions[bot]"

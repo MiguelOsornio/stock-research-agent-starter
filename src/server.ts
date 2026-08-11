@@ -1,15 +1,10 @@
 /**
- * =============================================================================
- * server.ts  — the web app entry point (starter / beginner path)
- * =============================================================================
- * This file starts a small Express server that:
- *   1. Serves the HTML/JS UI from the `public/` folder
- *   2. Accepts POST /api/research and runs research INSIDE that HTTP request
+ * server.ts — Express entry point.
  *
- * Important for the tutorial:
- *   When you close the browser mid-run, this starter has nothing to recover.
- *   Later steps move the work to a Render Workflow task with a task-run ID.
- * =============================================================================
+ * Serves `public/` and handles POST /api/research.
+ * Research runs inside the HTTP request (starter behavior): closing the
+ * browser mid-run leaves nothing to recover. The tutorial later moves
+ * that work to a Workflow task with a task-run ID.
  */
 
 import express from "express"

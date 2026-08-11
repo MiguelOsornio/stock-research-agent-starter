@@ -1,27 +1,10 @@
 /**
- * =============================================================================
- * workflows.ts  — placeholder for Render Workflows (filled in by the tutorial)
- * =============================================================================
- * FOR BEGINNERS
- * -------------
- * Right now this file does NOT register any Workflow tasks.
- * It only prints a reminder and stays running.
+ * workflows.ts — Workflow entry placeholder (tutorial fills this in).
  *
- * Later in the tutorial you replace this whole file with something like:
+ * No tasks are registered yet. The tutorial replaces this file with a
+ * `task()` wrapper around `researchStock`.
  *
- *   import { task } from "@renderinc/sdk/workflows"
- *   import { researchStock } from "./research-stock.js"
- *
- *   export const researchStockTask = task(
- *     { name: "researchStock", timeoutSeconds: 120 },
- *     async function researchStockTask(ticker: string) {
- *       return researchStock(ticker)
- *     },
- *   )
- *
- * The Workflow service start command is: npm run workflow:start
- * (see package.json), which runs this file.
- * =============================================================================
+ * Start command for the Workflow service: `npm run workflow:start`
  */
 
 console.log(

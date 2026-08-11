@@ -1,18 +1,9 @@
 /**
- * =============================================================================
- * research-stock.ts  — the mock research pipeline
- * =============================================================================
- * FOR BEGINNERS
- * -------------
- * This is the "brain" of the demo. It does NOT call a real stock API.
- * It reads sample data from data/mock-stocks.json and builds a short memo.
+ * research-stock.ts — mock research pipeline.
  *
- * The function deliberately waits a few seconds (RESEARCH_DELAY_MS) so you
- * have time to close the browser mid-run in the tutorial.
- *
- * Important: later tutorial steps keep THIS function the same. What changes
- * is WHO owns the run (the HTTP request vs a Render Workflow task).
- * =============================================================================
+ * Reads sample data from data/mock-stocks.json (no live market API).
+ * Waits RESEARCH_DELAY_MS so a browser can be closed mid-run.
+ * Later tutorial steps keep this function; ownership of the run changes.
  */
 
 import { readFileSync } from "node:fs"
