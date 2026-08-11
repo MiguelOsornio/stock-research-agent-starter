@@ -8,6 +8,7 @@
  */
 
 import express from "express"
+import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { researchStock } from "./research-stock.js"
@@ -16,6 +17,7 @@ const app = express()
 
 // Absolute path to the repo root (one level above `src/`).
 const root = join(dirname(fileURLToPath(import.meta.url)), "..")
+const publicDir = join(root, "public")
 
 // Parse JSON bodies like: { "ticker": "NVDA" }
 app.use(express.json())
@@ -26,24 +28,68 @@ app.use("/api", (_req, res, next) => {
   next()
 })
 
-// Keep UI JS fresh after deploys so attendees are not stuck on an old app.js.
-app.use(
-  express.static(join(root, "public"), {
-    setHeaders(res, filePath) {
-      if (filePath.endsWith(".js") || filePath.endsWith(".html")) {
-        res.set("Cache-Control", "no-cache")
-      }
-    },
-  }),
-)
-
 /**
  * Health check for Render (and for you).
+ * Registered early so platform probes never wait on static I/O.
  * Open /healthz — you should see { "ok": true }.
  */
 app.get("/healthz", (_req, res) => {
   res.status(200).json({ ok: true })
 })
+
+/**
+ * Build the homepage with CSS inlined.
+ * One successful HTML response is enough for a styled UI even when a
+ * separate /styles.css request would have failed at the edge.
+ */
+function sendIndex(res: express.Response): void {
+  const css = readFileSync(join(publicDir, "styles.css"), "utf8")
+  let html = readFileSync(join(publicDir, "index.html"), "utf8")
+  html = html.replace(
+    /<link\s+rel="stylesheet"\s+href="\/styles\.css[^"]*"\s*\/?>/,
+    `<style>\n${css}\n</style>`,
+  )
+  // Single JS module: avoids a second flaky fetch for ./tracker.js
+  html = html.replace(
+    /<script\s+src="\/app\.js[^"]*"\s+type="module"><\/script>/,
+    `<script src="/client.js" type="module"></script>`,
+  )
+  res.type("html").set("Cache-Control", "no-cache").send(html)
+}
+
+/**
+ * Concatenate tracker + app into one module so the browser makes one JS request.
+ * Source files in public/ stay separate for the tutorial.
+ */
+function sendClientBundle(res: express.Response): void {
+  const tracker = readFileSync(join(publicDir, "tracker.js"), "utf8")
+    .replace(/\bexport\s+const\b/g, "const")
+    .replace(/\bexport\s+function\b/g, "function")
+  const appJs = readFileSync(join(publicDir, "app.js"), "utf8").replace(
+    /import\s*\{[^}]*\}\s*from\s*["']\.\/tracker\.js["']\s*;?\s*/,
+    "",
+  )
+  res
+    .type("js")
+    .set("Cache-Control", "no-cache")
+    .send(`${tracker}\n${appJs}`)
+}
+
+app.get("/", (_req, res) => sendIndex(res))
+app.get("/index.html", (_req, res) => sendIndex(res))
+app.get("/client.js", (_req, res) => sendClientBundle(res))
+
+// Keep UI assets fresh after deploys. index: false so / uses sendIndex above.
+app.use(
+  express.static(publicDir, {
+    index: false,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".js") || filePath.endsWith(".html") || filePath.endsWith(".css")) {
+        res.set("Cache-Control", "no-cache")
+      }
+    },
+  }),
+)
 
 /**
  * Start research for one ticker.
