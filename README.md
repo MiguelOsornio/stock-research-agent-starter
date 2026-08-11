@@ -42,8 +42,8 @@ and Apply. That creates `{username}-renderatl-workshop` in your Render workspace
 | File | What it is |
 | --- | --- |
 | `src/server.ts` | Web server: UI + `POST /api/research` |
-| `src/research-stock.ts` | Mock research pipeline (kept the same in later tutorial steps) |
-| `src/workflows.ts` | Placeholder; tutorial wraps research in a Workflow `task()` |
+| `src/research-stock.ts` | Multi-step mock research pipeline (named steps; still request-owned) |
+| `src/workflows.ts` | Placeholder; tutorial later registers several Workflow tasks |
 | `render.yaml` | Blueprint recipe for Render |
 | `scripts/setup-attendee.js` | Renames Blueprint resources for your username |
 | `.github/workflows/setup-attendee.yml` | One-click GitHub Action that runs the setup script |

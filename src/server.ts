@@ -4,7 +4,7 @@
  * Serves `public/` and handles POST /api/research.
  * Research runs inside the HTTP request (starter behavior): closing the
  * browser mid-run leaves nothing to recover. The tutorial later moves
- * that work to a Workflow task with a task-run ID.
+ * ownership off the request onto Workflow tasks.
  */
 
 import express from "express"
