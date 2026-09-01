@@ -1,21 +1,95 @@
 /**
- * workflows.ts — Workflow entry placeholder (tutorial fills this in).
+ * Workflow task definitions (Render SDK 1.0.0).
  *
- * No tasks are registered yet. The tutorial replaces this file and registers
- * several tasks: a root researchStock task plus step tasks for facts, signals,
- * catalysts, risks, and writeMemo.
+ * Leaf tasks wrap the mock pipeline. The root chains them with ctx.run
+ * so each step is its own child task run.
  *
- * Start command for the Workflow service: `npm run workflow:start`
+ * Start command: npm run workflow:start
  */
 
-console.log(
-  "No Workflow tasks registered yet. Follow the tutorial to register several research tasks.",
+import { task, type TaskContext } from "@renderinc/sdk/workflows"
+import {
+  collectSignals,
+  identifyCatalysts,
+  identifyRisks,
+  loadCompanyFacts,
+  writeMemo,
+  type ResearchMemo,
+} from "./research-stock.js"
+
+const taskOptions = {
+  plan: "flex",
+  timeoutSeconds: 120,
+} as const
+
+export const loadCompanyFactsTask = task(
+  { name: "loadCompanyFacts", ...taskOptions },
+  async function loadCompanyFactsTask(_ctx: TaskContext, ticker: string) {
+    return loadCompanyFacts(ticker)
+  },
 )
 
-/**
- * Keep the process alive.
- * If this file exited immediately, a mistaken Workflow deploy would look
- * "successful" with zero tasks. Staying up makes the missing task obvious
- * in logs / the Dashboard Tasks list.
- */
-setInterval(() => {}, 1 << 30)
+export const collectSignalsTask = task(
+  { name: "collectSignals", ...taskOptions },
+  async function collectSignalsTask(_ctx: TaskContext, ticker: string) {
+    return collectSignals(ticker)
+  },
+)
+
+export const identifyCatalystsTask = task(
+  { name: "identifyCatalysts", ...taskOptions },
+  async function identifyCatalystsTask(_ctx: TaskContext, ticker: string) {
+    return identifyCatalysts(ticker)
+  },
+)
+
+export const identifyRisksTask = task(
+  { name: "identifyRisks", ...taskOptions },
+  async function identifyRisksTask(_ctx: TaskContext, ticker: string) {
+    return identifyRisks(ticker)
+  },
+)
+
+export const writeMemoTask = task(
+  { name: "writeMemo", ...taskOptions },
+  async function writeMemoTask(
+    _ctx: TaskContext,
+    input: {
+      ticker: string
+      company: string
+      currentSignals: string[]
+      potentialCatalysts: string[]
+      keyRisks: string[]
+    },
+  ): Promise<ResearchMemo> {
+    return writeMemo(input)
+  },
+)
+
+export const researchStockTask = task(
+  { name: "researchStock", ...taskOptions },
+  async function researchStockTask(
+    ctx: TaskContext,
+    ticker: string,
+  ): Promise<ResearchMemo> {
+    const facts = await ctx.run(loadCompanyFactsTask, ticker)
+
+    const [currentSignals, potentialCatalysts, keyRisks] = await Promise.all([
+      ctx.run(collectSignalsTask, facts.ticker),
+      ctx.run(identifyCatalystsTask, facts.ticker),
+      ctx.run(identifyRisksTask, facts.ticker),
+    ])
+
+    return ctx.run(writeMemoTask, {
+      ticker: facts.ticker,
+      company: facts.company,
+      currentSignals,
+      potentialCatalysts,
+      keyRisks,
+    })
+  },
+)
+
+console.log(
+  "Registered Workflow tasks: loadCompanyFacts, collectSignals, identifyCatalysts, identifyRisks, writeMemo, researchStock",
+)

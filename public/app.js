@@ -1,22 +1,15 @@
-import {
-  hideTracker,
-  markTrackerDone,
-  setTrackerMode,
-  startTimedTracker,
-  stopTrackerTicks,
-  syncTrackerFromStartedAt,
-} from "./tracker.js"
-
-// Bump this key if stored runs become incompatible. Old keys are ignored
-// automatically so attendees never need to clear site data by hand.
-const KEY = "stockResearchTaskRunId.v2"
-const KEY_STARTED = "stockResearchStartedAt.v2"
+const STORAGE_KEY = "closeTheTabRun.v1"
 
 const form = document.getElementById("research-form")
 const tickerInput = document.getElementById("ticker")
 const submit = document.getElementById("submit")
 const statusEl = document.getElementById("status")
 const memoEl = document.getElementById("memo")
+const runPanel = document.getElementById("run-panel")
+const runIdEl = document.getElementById("run-id")
+const runStatusEl = document.getElementById("run-status")
+const startOver = document.getElementById("start-over")
+const forgetRun = document.getElementById("forget-run")
 
 function setStatus(text) {
   statusEl.hidden = !text
@@ -42,30 +35,45 @@ function renderMemo(memo) {
   ].join("\n")
 }
 
-function saveRun(taskRunId, startedAtMs) {
-  localStorage.setItem(KEY, taskRunId)
-  localStorage.setItem(KEY_STARTED, String(startedAtMs))
-}
-
-function clearRun() {
-  localStorage.removeItem(KEY)
-  localStorage.removeItem(KEY_STARTED)
-}
-
-function startedAtFrom(data, fallbackMs) {
-  if (data?.startedAt) {
-    const parsed = Date.parse(data.startedAt)
-    if (!Number.isNaN(parsed)) return parsed
+function loadRecord() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")
+    if (!parsed?.taskRunId) return null
+    return parsed
+  } catch {
+    return null
   }
-  return fallbackMs
 }
 
-/** Parse JSON from a fetch Response. Throws a short, human message on failure. */
+function saveRecord(record) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(record))
+}
+
+function forgetRecord() {
+  localStorage.removeItem(STORAGE_KEY)
+}
+
+function showRun(record, statusText) {
+  runPanel.hidden = false
+  runIdEl.textContent = record.taskRunId
+  runStatusEl.textContent = statusText
+  forgetRun.hidden = statusText !== "not found"
+}
+
+function hideRun() {
+  runPanel.hidden = true
+  runIdEl.textContent = ""
+  runStatusEl.textContent = ""
+  forgetRun.hidden = true
+}
+
+function isDone(status) {
+  return status === "completed" || status === "succeeded"
+}
+
 async function readJson(res) {
   const text = await res.text()
-  if (!text) {
-    throw new Error(`Empty response (${res.status})`)
-  }
+  if (!text) throw new Error(`Empty response (${res.status})`)
   try {
     return JSON.parse(text)
   } catch {
@@ -73,57 +81,52 @@ async function readJson(res) {
   }
 }
 
-/**
- * One status check. Returns parsed JSON on success, or null if this host
- * cannot resume (starter mode, stale id, non-JSON 404, etc.).
- */
-async function peekStatus(taskRunId) {
-  try {
-    const res = await fetch(`/api/research/${taskRunId}`, { cache: "no-store" })
-    const data = await readJson(res)
-    if (!res.ok && data.status !== "failed" && data.status !== "canceled") {
-      return null
-    }
-    return data
-  } catch {
-    return null
-  }
-}
-
-/**
- * Polls Workflow status and keeps the tracker aligned with elapsed research time.
- */
-async function pollUntilDone(taskRunId) {
-  setTrackerMode("durable")
-  const storedStarted = Number(localStorage.getItem(KEY_STARTED) || "")
-  let startedAtMs = Number.isFinite(storedStarted) ? storedStarted : Date.now()
+async function pollUntilDone(record) {
+  showRun(record, "pending")
+  setStatus(`Task-run ID ${record.taskRunId}`)
 
   while (true) {
-    const res = await fetch(`/api/research/${taskRunId}`, { cache: "no-store" })
-    const data = await readJson(res)
-
-    if (!res.ok && data.status !== "failed" && data.status !== "canceled") {
-      throw new Error(data.error || "Status check failed")
+    let res
+    try {
+      res = await fetch(record.statusUrl, { cache: "no-store" })
+    } catch {
+      setStatus("Status lookup failed. The task-run ID is still saved. Retrying…")
+      await new Promise((r) => setTimeout(r, 1500))
+      continue
     }
 
-    startedAtMs = startedAtFrom(data, startedAtMs)
-    localStorage.setItem(KEY_STARTED, String(startedAtMs))
+    const data = await readJson(res)
 
-    if (data.status === "completed") {
-      markTrackerDone()
-      setStatus(`Completed (${taskRunId})`)
-      renderMemo(data.memo)
-      clearRun()
+    if (res.status >= 500) {
+      setStatus("Temporary status error. The task-run ID is still saved. Retrying…")
+      await new Promise((r) => setTimeout(r, 1500))
+      continue
+    }
+
+    if (res.status === 404) {
+      showRun(record, "not found")
+      setStatus("This run is not available. Use Forget this run if you want to clear it.")
+      return
+    }
+
+    if (!res.ok) {
+      setStatus(data.error || "Status check failed")
+      return
+    }
+
+    showRun(record, data.status)
+
+    if (isDone(data.status)) {
+      setStatus(`Status: ${data.status}`)
+      if (data.memo) renderMemo(data.memo)
       return
     }
 
     if (data.status === "failed" || data.status === "canceled") {
-      hideTracker()
-      clearRun()
-      throw new Error(data.error || `Research ${data.status}`)
+      setStatus(data.error || `Status: ${data.status}`)
+      return
     }
 
-    syncTrackerFromStartedAt(startedAtMs)
     setStatus(`Status: ${data.status}`)
     await new Promise((r) => setTimeout(r, 1000))
   }
@@ -133,9 +136,14 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault()
   memoEl.hidden = true
   submit.disabled = true
-  setStatus("")
-  clearRun()
-  startTimedTracker()
+  setStatus("Request running…")
+
+  const previous = loadRecord()
+  const startedAt = Date.now()
+  const tick = window.setInterval(() => {
+    const seconds = Math.floor((Date.now() - startedAt) / 1000)
+    if (!loadRecord()) setStatus(`Request running (${seconds}s)`)
+  }, 250)
 
   try {
     const res = await fetch("/api/research", {
@@ -147,61 +155,49 @@ form.addEventListener("submit", async (event) => {
     const data = await readJson(res)
     if (!res.ok) throw new Error(data.error || "Request failed")
 
-    // Workflow mode: receipt + poll.
     if (data.taskRunId) {
-      stopTrackerTicks()
-      const startedAtMs = Date.now()
-      saveRun(data.taskRunId, startedAtMs)
-      syncTrackerFromStartedAt(startedAtMs)
-      await pollUntilDone(data.taskRunId)
+      const record = {
+        taskRunId: data.taskRunId,
+        statusUrl: data.statusUrl || `/api/research/${data.taskRunId}`,
+        ticker: tickerInput.value.trim().toUpperCase(),
+        createdAt: new Date().toISOString(),
+      }
+      saveRecord(record)
+      await pollUntilDone(record)
       return
     }
 
-    // Starter mode: memo on the same request.
-    stopTrackerTicks()
-    markTrackerDone()
-    setTrackerMode("request")
-    setStatus("Done. Still no run ID: refresh loses this result.")
+    setStatus("Done. This response had no task-run ID, so a reload cannot look it up.")
     renderMemo(data)
   } catch (err) {
-    hideTracker()
-    clearRun()
+    if (previous) saveRecord(previous)
     setStatus(err instanceof Error ? err.message : "Request failed")
   } finally {
+    window.clearInterval(tick)
     submit.disabled = false
   }
 })
 
-/**
- * Resume a saved Workflow run if possible.
- * If the saved id is stale or this host has no status route, clear it quietly
- * and leave a blank form. Attendees should never need DevTools for this.
- */
+startOver.addEventListener("click", () => {
+  forgetRecord()
+  hideRun()
+  memoEl.hidden = true
+  setStatus("")
+})
+
+forgetRun.addEventListener("click", () => {
+  forgetRecord()
+  hideRun()
+  memoEl.hidden = true
+  setStatus("")
+})
+
 async function maybeResume() {
-  const existing = localStorage.getItem(KEY)
+  const existing = loadRecord()
   if (!existing) return
-
   submit.disabled = true
-  setStatus("Resuming previous run…")
-
-  const first = await peekStatus(existing)
-  if (!first) {
-    clearRun()
-    hideTracker()
-    setStatus("")
-    submit.disabled = false
-    return
-  }
-
   try {
-    // Re-enter the poll loop with the already-fetched first payload path:
-    // simplest is to call pollUntilDone, which hits the API again immediately.
-    syncTrackerFromStartedAt(startedAtFrom(first, Date.now()))
     await pollUntilDone(existing)
-  } catch {
-    clearRun()
-    hideTracker()
-    setStatus("")
   } finally {
     submit.disabled = false
   }

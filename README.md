@@ -1,49 +1,31 @@
-# Stock research agent (starter)
+# Stock research with Workflows (workshop starter)
 
-Educational demo: enter a ticker, get a mock research memo. Research runs **inside the HTTP request**.
+Workshop sample: a small web app that runs a multi-step mock job from ticker symbols. No model API.
 
-For the tutorial that moves this onto Render Workflows, see the Render Tutorials site (`stock-research-with-workflows`).
+Pinned SDK: `@renderinc/sdk@1.0.0`.
+
+The first deploy waits for the job inside one HTTP request. The tutorial then switches `POST /api/research` to start a Render Workflow task and return a task-run ID.
+
+`RESEARCH_DELAY_MS` defaults to `20000` and applies to both the request-bound path and the Workflow leaf tasks, so the close-tab exercise has time to land.
 
 ## Run locally
 
 ```bash
-npm install
+npm ci
+npm run build
 npm start
 ```
 
-Open `http://localhost:3000`. Mock tickers: `NVDA`, `AAPL`, `MSFT`.
+Open `http://localhost:3000`. Sample tickers: `NVDA`, `AAPL`, `MSFT`.
 
-`RESEARCH_DELAY_MS` (default `8000`) controls how long a run takes so you can close the browser mid-request.
+## Deploy
 
-## Deploy (workshop / fork)
+In the [Render Dashboard](https://dashboard.render.com): **New → Blueprint**, select your fork, leave the path as `render.yaml`.
 
-### 1. Make your Blueprint names unique
+This Blueprint creates the web service only. It does not create a Workflow.
 
-After you fork, run the **Setup attendee Blueprint names** GitHub Action
-(Actions tab → Run workflow), or locally:
+If the service name is already taken in the workspace, change `name` in `render.yaml` before you deploy.
 
-```bash
-npm install
-npm run setup -- your-github-username
-```
+## Cleanup
 
-That rewrites `render.yaml` so the Render **project** is
-`your-github-username-renderatl-workshop` (and the web service gets a username
-prefix). Commit and push if you ran setup locally.
-
-### 2. Deploy from the Render Dashboard or CLI
-
-Deploy is **not** done from GitHub. In the [Dashboard](https://dashboard.render.com):
-**New → Blueprint**, select your fork, leave the Blueprint path as `render.yaml`,
-and Apply. That creates `{username}-renderatl-workshop` in your Render workspace.
-
-## Key files
-
-| File | What it is |
-| --- | --- |
-| `src/server.ts` | Web server: UI + `POST /api/research` |
-| `src/research-stock.ts` | Multi-step mock research pipeline (named steps; still request-owned) |
-| `src/workflows.ts` | Placeholder; tutorial later registers several Workflow tasks |
-| `render.yaml` | Blueprint recipe for Render |
-| `scripts/setup-attendee.js` | Renames Blueprint resources for your username |
-| `.github/workflows/setup-attendee.yml` | One-click GitHub Action that runs the setup script |
+Delete the web service and any Workflow you created. Revoke the API key used by the web service.
