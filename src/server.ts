@@ -110,8 +110,8 @@ app.post("/api/research", async (req, res) => {
     // TODO(workshop): replace the next two lines with:
     // const started = await startWorkflowRun(parsed)
     // res.status(202).json(started)
-    const outcome = await handleRequestBound(parsed)
-    res.json(outcome)
+    const started = await startWorkflowRun(parsed)
+    res.status(202).json(started)
   } catch (err) {
     if (err instanceof ResearchStepFailed) {
       res.status(500).json({
