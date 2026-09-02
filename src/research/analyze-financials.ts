@@ -1,3 +1,4 @@
+import { stepDelay } from "./delay.js"
 import { loadPacket, pct } from "./packets.js"
 import type { FinancialAnalysis, ResearchInput } from "./types.js"
 
@@ -5,6 +6,7 @@ import type { FinancialAnalysis, ResearchInput } from "./types.js"
 export async function analyzeFinancials(
   input: ResearchInput,
 ): Promise<FinancialAnalysis> {
+  await stepDelay()
   const packet = loadPacket(input.ticker)
   const { financials } = packet
   const grossMarginPct = pct(financials.grossProfitUsdB, financials.revenueUsdB)

@@ -8,6 +8,7 @@ export type ResearchInput = {
   ticker: string
   jobId: string
   failNews: boolean
+  retryInRequest: boolean
 }
 
 export type FinancialAnalysis = {

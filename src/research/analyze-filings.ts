@@ -1,3 +1,4 @@
+import { stepDelay } from "./delay.js"
 import { loadPacket } from "./packets.js"
 import type { FilingAnalysis, ResearchInput } from "./types.js"
 
@@ -5,6 +6,7 @@ import type { FilingAnalysis, ResearchInput } from "./types.js"
 export async function analyzeFilings(
   input: ResearchInput,
 ): Promise<FilingAnalysis> {
+  await stepDelay()
   const packet = loadPacket(input.ticker)
   const { filings } = packet
   const riskFactors = filings.excerpts.map((excerpt) => excerpt.trim())

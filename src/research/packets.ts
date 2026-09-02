@@ -33,12 +33,14 @@ export function normalizeInput(
       ticker: input.trim().toUpperCase(),
       jobId: `manual-${input.trim().toUpperCase()}`,
       failNews: false,
+      retryInRequest: false,
     }
   }
   return {
     ticker: String(input.ticker ?? "").trim().toUpperCase(),
     jobId: String(input.jobId ?? "").trim() || `job-${Date.now()}`,
     failNews: Boolean(input.failNews),
+    retryInRequest: Boolean(input.retryInRequest),
   }
 }
 

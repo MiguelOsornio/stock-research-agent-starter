@@ -1,3 +1,4 @@
+import { stepDelay } from "./delay.js"
 import { loadPacket } from "./packets.js"
 import type {
   FilingAnalysis,
@@ -143,6 +144,7 @@ async function writeWithModel(input: BriefInput): Promise<ResearchBrief> {
 
 /** Synthesize one cited brief. Uses a model when MODEL_API_KEY is set. */
 export async function writeResearchBrief(input: BriefInput): Promise<ResearchBrief> {
+  await stepDelay()
   const packet = loadPacket(input.ticker)
   const withMeta: BriefInput = {
     ...input,

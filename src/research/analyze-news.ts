@@ -1,9 +1,11 @@
+import { stepDelay } from "./delay.js"
 import { probeNewsSource } from "./fail-news.js"
 import { loadPacket } from "./packets.js"
 import type { NewsAnalysis, ResearchInput } from "./types.js"
 
 /** Score the dated news window. Optionally fail once for the retry exercise. */
 export async function analyzeNews(input: ResearchInput): Promise<NewsAnalysis> {
+  await stepDelay()
   if (input.failNews) {
     await probeNewsSource(input.jobId)
   }
