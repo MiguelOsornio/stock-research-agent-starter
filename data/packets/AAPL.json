@@ -1,0 +1,84 @@
+{
+  "ticker": "AAPL",
+  "company": "Apple Inc.",
+  "asOf": "2026-08-15",
+  "financials": {
+    "source": {
+      "label": "Workshop packet: Apple financial highlights",
+      "url": "https://workshop.render.example/packets/2026-08-15/AAPL/financials",
+      "asOf": "2026-08-15"
+    },
+    "revenueUsdB": 391.0,
+    "grossProfitUsdB": 180.8,
+    "operatingIncomeUsdB": 123.2,
+    "notes": [
+      "Services mix continues to expand in the packet's segment table.",
+      "Hardware revenue is large but grows slower than services in this window.",
+      "Operating margin stays high relative to the consumer-electronics peer set."
+    ]
+  },
+  "filings": {
+    "source": {
+      "label": "Workshop packet: Apple filing excerpts",
+      "url": "https://workshop.render.example/packets/2026-08-15/AAPL/filings",
+      "asOf": "2026-08-15"
+    },
+    "filingType": "10-K excerpts (workshop cache)",
+    "excerpts": [
+      "A substantial portion of product assembly occurs through partners in China.",
+      "Regulatory attention on App Store policies remains active in several regions.",
+      "The company notes concentration in a small number of manufacturing partners."
+    ]
+  },
+  "news": {
+    "source": {
+      "label": "Workshop packet: Apple news window",
+      "url": "https://workshop.render.example/packets/2026-08-15/AAPL/news",
+      "asOf": "2026-08-15"
+    },
+    "headlines": [
+      {
+        "title": "On-device model features expand in the next installed-base refresh",
+        "url": "https://workshop.render.example/news/aapl-on-device-2026-08",
+        "date": "2026-08-13"
+      },
+      {
+        "title": "Services pricing experiments show up in regional storefronts",
+        "url": "https://workshop.render.example/news/aapl-services-pricing-2026-08",
+        "date": "2026-08-09"
+      },
+      {
+        "title": "Hardware upgrade commentary stays uneven across regions",
+        "url": "https://workshop.render.example/news/aapl-upgrade-cycle-2026-08",
+        "date": "2026-08-07"
+      }
+    ]
+  },
+  "peers": {
+    "source": {
+      "label": "Workshop packet: Apple peer set",
+      "url": "https://workshop.render.example/packets/2026-08-15/AAPL/peers",
+      "asOf": "2026-08-15"
+    },
+    "comparables": [
+      {
+        "ticker": "MSFT",
+        "company": "Microsoft Corporation",
+        "revenueUsdB": 281.7,
+        "grossMarginPct": 69.4
+      },
+      {
+        "ticker": "GOOGL",
+        "company": "Alphabet Inc.",
+        "revenueUsdB": 350.0,
+        "grossMarginPct": 57.5
+      },
+      {
+        "ticker": "AMZN",
+        "company": "Amazon.com, Inc.",
+        "revenueUsdB": 638.0,
+        "grossMarginPct": 48.0
+      }
+    ]
+  }
+}

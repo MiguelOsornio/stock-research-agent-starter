@@ -1,21 +1,29 @@
 /**
  * Workshop web service. Not a production job system.
  *
- * Starter: POST waits for the mock pipeline inside the HTTP request.
- * After the tutorial edit: POST starts researchStock and returns HTTP 202.
+ * Starter: POST waits for researchCompany inside the HTTP request.
+ * After the tutorial edit: POST starts researchCompany and returns HTTP 202.
  */
 
 import express from "express"
 import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { ClientError, Render, ServerError } from "@renderinc/sdk"
-import { researchStock } from "./research-stock.js"
+import { ClientError, ServerError } from "@renderinc/sdk"
+import { recordNewsProbe, researchCompany, type ResearchInput } from "./research/index.js"
+import {
+  allowStart,
+  isTaskRunId,
+  parseResearchInput,
+  publicMessage,
+  renderClient,
+  requireWorkshopToken,
+  workflowSlug,
+} from "./workshop.js"
 
 const app = express()
 const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 const publicDir = join(root, "public")
-const startTimes = new Map<string, number[]>()
 
 app.use(express.json())
 app.use("/api", (_req, res, next) => {
@@ -50,45 +58,14 @@ app.use(
   }),
 )
 
-function publicMessage(err: unknown): string {
-  const message = err instanceof Error ? err.message : "Request failed"
-  if (/api key|token|rnd_|authorization/i.test(message)) {
-    return "The server could not complete that lookup."
-  }
-  return message
-}
-
-function allowStart(ip: string): boolean {
-  const now = Date.now()
-  const recent = (startTimes.get(ip) ?? []).filter((time) => now - time < 60_000)
-  if (recent.length >= 10) {
-    startTimes.set(ip, recent)
-    return false
-  }
-  recent.push(now)
-  startTimes.set(ip, recent)
-  return true
-}
-
-function workflowSlug(): string {
-  const slug = process.env.WORKFLOW_SERVICE_SLUG?.trim()
-  if (!slug) throw new Error("WORKFLOW_SERVICE_SLUG is required")
-  return slug
-}
-
-function renderClient(): Render {
-  return new Render()
-}
-
-function isTaskRunId(value: string): boolean {
-  return /^trn-[a-zA-Z0-9_-]+$/.test(value)
-}
+app.use("/api/research", requireWorkshopToken)
+app.use("/api/workshop", requireWorkshopToken)
 
 /** Used after the tutorial edit. Do not call this until POST is switched. */
-export async function startWorkflowRun(ticker: string) {
+export async function startWorkflowRun(input: ResearchInput) {
   const started = await renderClient().workflows.startTask(
-    `${workflowSlug()}/researchStock`,
-    [ticker],
+    `${workflowSlug()}/researchCompany`,
+    [input],
   )
   return {
     taskRunId: started.taskRunId,
@@ -96,10 +73,24 @@ export async function startWorkflowRun(ticker: string) {
   }
 }
 
+app.get("/api/workshop/news-source/:jobId", (req, res) => {
+  const jobId = String(req.params.jobId ?? "")
+  if (!jobId) {
+    res.status(400).json({ error: "jobId is required" })
+    return
+  }
+  const status = recordNewsProbe(jobId)
+  if (status === "unavailable") {
+    res.status(503).json({ error: "News source unavailable" })
+    return
+  }
+  res.status(200).json({ ok: true })
+})
+
 app.post("/api/research", async (req, res) => {
-  const ticker = String(req.body?.ticker ?? "").trim()
-  if (!ticker) {
-    res.status(400).json({ error: "ticker is required" })
+  const parsed = parseResearchInput(req.body ?? {})
+  if ("error" in parsed) {
+    res.status(400).json({ error: parsed.error })
     return
   }
   if (!allowStart(req.ip ?? "unknown")) {
@@ -109,9 +100,9 @@ app.post("/api/research", async (req, res) => {
 
   try {
     // TODO(workshop): replace the next two lines with:
-    // const started = await startWorkflowRun(ticker)
+    // const started = await startWorkflowRun(parsed)
     // res.status(202).json(started)
-    const memo = await researchStock(ticker)
+    const memo = await researchCompany(parsed)
     res.json(memo)
   } catch (err) {
     res.status(500).json({ error: publicMessage(err) })

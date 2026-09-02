@@ -1,95 +1,100 @@
 /**
  * Workflow task definitions (Render SDK 1.0.0).
  *
- * Leaf tasks wrap the mock pipeline. The root chains them with ctx.run
- * so each step is its own child task run.
+ * Leaf tasks wrap the same source-analysis functions as the request-bound path.
+ * The root chains them with ctx.run so each step is its own child task run.
  *
  * Start command: npm run workflow:start
  */
 
 import { task, type TaskContext } from "@renderinc/sdk/workflows"
 import {
-  collectSignals,
-  identifyCatalysts,
-  identifyRisks,
-  loadCompanyFacts,
-  writeMemo,
-  type ResearchMemo,
-} from "./research-stock.js"
+  analyzeFilings,
+  analyzeFinancials,
+  analyzeNews,
+  comparePeers,
+  loadPacket,
+  normalizeInput,
+  writeResearchBrief,
+  type ResearchBrief,
+  type ResearchInput,
+} from "./research/index.js"
 
 const taskOptions = {
   plan: "flex",
-  timeoutSeconds: 120,
+  timeoutSeconds: 300,
 } as const
 
-export const loadCompanyFactsTask = task(
-  { name: "loadCompanyFacts", ...taskOptions },
-  async function loadCompanyFactsTask(_ctx: TaskContext, ticker: string) {
-    return loadCompanyFacts(ticker)
+export const analyzeFinancialsTask = task(
+  { name: "analyzeFinancials", ...taskOptions },
+  async function analyzeFinancialsTask(_ctx: TaskContext, input: ResearchInput) {
+    return analyzeFinancials(normalizeInput(input))
   },
 )
 
-export const collectSignalsTask = task(
-  { name: "collectSignals", ...taskOptions },
-  async function collectSignalsTask(_ctx: TaskContext, ticker: string) {
-    return collectSignals(ticker)
+export const analyzeFilingsTask = task(
+  { name: "analyzeFilings", ...taskOptions },
+  async function analyzeFilingsTask(_ctx: TaskContext, input: ResearchInput) {
+    return analyzeFilings(normalizeInput(input))
   },
 )
 
-export const identifyCatalystsTask = task(
-  { name: "identifyCatalysts", ...taskOptions },
-  async function identifyCatalystsTask(_ctx: TaskContext, ticker: string) {
-    return identifyCatalysts(ticker)
+export const analyzeNewsTask = task(
+  {
+    name: "analyzeNews",
+    ...taskOptions,
+    retry: { maxRetries: 1, waitDurationMs: 3000, backoffScaling: 1 },
+  },
+  async function analyzeNewsTask(_ctx: TaskContext, input: ResearchInput) {
+    return analyzeNews(normalizeInput(input))
   },
 )
 
-export const identifyRisksTask = task(
-  { name: "identifyRisks", ...taskOptions },
-  async function identifyRisksTask(_ctx: TaskContext, ticker: string) {
-    return identifyRisks(ticker)
+export const comparePeersTask = task(
+  { name: "comparePeers", ...taskOptions },
+  async function comparePeersTask(_ctx: TaskContext, input: ResearchInput) {
+    return comparePeers(normalizeInput(input))
   },
 )
 
-export const writeMemoTask = task(
-  { name: "writeMemo", ...taskOptions },
-  async function writeMemoTask(
+export const writeResearchBriefTask = task(
+  { name: "writeResearchBrief", ...taskOptions },
+  async function writeResearchBriefTask(
     _ctx: TaskContext,
-    input: {
-      ticker: string
-      company: string
-      currentSignals: string[]
-      potentialCatalysts: string[]
-      keyRisks: string[]
-    },
-  ): Promise<ResearchMemo> {
-    return writeMemo(input)
+    input: Parameters<typeof writeResearchBrief>[0],
+  ): Promise<ResearchBrief> {
+    return writeResearchBrief(input)
   },
 )
 
-export const researchStockTask = task(
-  { name: "researchStock", ...taskOptions },
-  async function researchStockTask(
+export const researchCompanyTask = task(
+  { name: "researchCompany", ...taskOptions },
+  async function researchCompanyTask(
     ctx: TaskContext,
-    ticker: string,
-  ): Promise<ResearchMemo> {
-    const facts = await ctx.run(loadCompanyFactsTask, ticker)
+    input: string | ResearchInput,
+  ): Promise<ResearchBrief> {
+    const research = normalizeInput(input)
+    const packet = loadPacket(research.ticker)
 
-    const [currentSignals, potentialCatalysts, keyRisks] = await Promise.all([
-      ctx.run(collectSignalsTask, facts.ticker),
-      ctx.run(identifyCatalystsTask, facts.ticker),
-      ctx.run(identifyRisksTask, facts.ticker),
+    const [financials, filings, news, peers] = await Promise.all([
+      ctx.run(analyzeFinancialsTask, research),
+      ctx.run(analyzeFilingsTask, research),
+      ctx.run(analyzeNewsTask, research),
+      ctx.run(comparePeersTask, research),
     ])
 
-    return ctx.run(writeMemoTask, {
-      ticker: facts.ticker,
-      company: facts.company,
-      currentSignals,
-      potentialCatalysts,
-      keyRisks,
+    return ctx.run(writeResearchBriefTask, {
+      ticker: packet.ticker,
+      company: packet.company,
+      asOf: packet.asOf,
+      financials,
+      filings,
+      news,
+      peers,
     })
   },
 )
 
 console.log(
-  "Registered Workflow tasks: loadCompanyFacts, collectSignals, identifyCatalysts, identifyRisks, writeMemo, researchStock",
+  "Registered Workflow tasks: researchCompany, analyzeFinancials, analyzeFilings, analyzeNews, comparePeers, writeResearchBrief",
 )

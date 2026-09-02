@@ -1,7 +1,10 @@
 const STORAGE_KEY = "closeTheTabRun.v1"
+const TOKEN_KEY = "workshopToken.v1"
 
 const form = document.getElementById("research-form")
 const tickerInput = document.getElementById("ticker")
+const failNewsInput = document.getElementById("fail-news")
+const tokenInput = document.getElementById("workshop-token")
 const submit = document.getElementById("submit")
 const statusEl = document.getElementById("status")
 const memoEl = document.getElementById("memo")
@@ -11,6 +14,16 @@ const runStatusEl = document.getElementById("run-status")
 const startOver = document.getElementById("start-over")
 const forgetRun = document.getElementById("forget-run")
 
+tokenInput.value = sessionStorage.getItem(TOKEN_KEY) || ""
+
+function headers() {
+  const headers = { "content-type": "application/json" }
+  if (tokenInput.value.trim()) {
+    headers["x-workshop-token"] = tokenInput.value.trim()
+  }
+  return headers
+}
+
 function setStatus(text) {
   statusEl.hidden = !text
   statusEl.textContent = text
@@ -18,20 +31,31 @@ function setStatus(text) {
 
 function renderMemo(memo) {
   memoEl.hidden = false
+  const citations = (memo.citations || [])
+    .map((citation) => `- ${citation.label} (${citation.asOf}): ${citation.url}`)
+    .join("\n")
   memoEl.textContent = [
-    `Company: ${memo.company} (${memo.ticker})`,
+    `${memo.company} (${memo.ticker})`,
+    `Packet date: ${memo.asOf || "n/a"}`,
+    `Synthesis: ${memo.synthesisMode || "unknown"}`,
     "",
-    "Current signals:",
-    ...memo.currentSignals.map((s) => `- ${s}`),
+    "Financials:",
+    memo.financials || "",
     "",
-    "Potential catalysts:",
-    ...memo.potentialCatalysts.map((s) => `- ${s}`),
+    "Filings:",
+    memo.filings || "",
     "",
-    "Key risks:",
-    ...memo.keyRisks.map((s) => `- ${s}`),
+    "News:",
+    memo.news || "",
     "",
-    "Research summary:",
-    memo.researchSummary,
+    "Peers:",
+    memo.peers || "",
+    "",
+    "Summary:",
+    memo.summary || "",
+    "",
+    "Citations:",
+    citations,
   ].join("\n")
 }
 
@@ -88,7 +112,7 @@ async function pollUntilDone(record) {
   while (true) {
     let res
     try {
-      res = await fetch(record.statusUrl, { cache: "no-store" })
+      res = await fetch(record.statusUrl, { cache: "no-store", headers: headers() })
     } catch {
       setStatus("Status lookup failed. The task-run ID is still saved. Retrying…")
       await new Promise((r) => setTimeout(r, 1500))
@@ -136,6 +160,7 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault()
   memoEl.hidden = true
   submit.disabled = true
+  sessionStorage.setItem(TOKEN_KEY, tokenInput.value.trim())
   setStatus("Request running…")
 
   const previous = loadRecord()
@@ -148,8 +173,11 @@ form.addEventListener("submit", async (event) => {
   try {
     const res = await fetch("/api/research", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ticker: tickerInput.value }),
+      headers: headers(),
+      body: JSON.stringify({
+        ticker: tickerInput.value,
+        failNews: failNewsInput.checked,
+      }),
       cache: "no-store",
     })
     const data = await readJson(res)

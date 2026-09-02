@@ -16,5 +16,7 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
-      - key: RESEARCH_DELAY_MS
-        value: "20000"
+      - key: MODEL_BASE_URL
+        value: "https://api.openai.com/v1"
+      - key: MODEL_NAME
+        value: "gpt-4o-mini"

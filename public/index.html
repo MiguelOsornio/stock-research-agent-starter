@@ -6,7 +6,7 @@
     <title>Stock research with Workflows</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/render-dds.css" />
-    <link rel="stylesheet" href="/styles.css?v=4" />
+    <link rel="stylesheet" href="/styles.css?v=5" />
   </head>
   <body>
     <header class="site-header">
@@ -36,14 +36,14 @@
 
     <main class="shell">
       <p class="banner">
-        Workshop sample. Not a production job system. Mock ticker data only. No
-        model API.
+        Workshop sample. Not a production job system. Dated source packets as of
+        2026-08-15. Not investment advice. Revoke the API key during cleanup.
       </p>
       <h1>Stock research</h1>
       <p class="lede">
-        Start a multi-step mock job with a ticker. This first deploy waits for
-        the final result on one HTTP request. After the tutorial edit, you get a
-        task-run ID you can reopen.
+        Analyze financials, filings, news, and peers in parallel, then write one
+        cited brief. The first deploy waits inside one HTTP request. After the
+        tutorial edit, you get a task-run ID you can reopen.
       </p>
       <form id="research-form">
         <label for="ticker">Ticker</label>
@@ -58,7 +58,22 @@
           />
           <button type="submit" id="submit">Start job</button>
         </div>
-        <p class="hint">Sample tickers: NVDA, AAPL, MSFT. About 20 seconds.</p>
+        <label class="check-row">
+          <input id="fail-news" type="checkbox" />
+          Fail the news source once
+        </label>
+        <label for="workshop-token">Workshop token</label>
+        <input
+          id="workshop-token"
+          name="workshop-token"
+          type="password"
+          autocomplete="off"
+          placeholder="Leave blank unless the organizer gave you one"
+        />
+        <p class="hint">
+          Packets: NVDA, AAPL, MSFT. Check the box only for the late-failure and
+          retry exercises.
+        </p>
       </form>
 
       <section id="run-panel" class="run-panel" hidden>
@@ -93,6 +108,6 @@
         >
       </div>
     </footer>
-    <script src="/app.js?v=4" type="module"></script>
+    <script src="/app.js?v=5" type="module"></script>
   </body>
 </html>

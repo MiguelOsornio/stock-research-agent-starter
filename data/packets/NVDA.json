@@ -1,0 +1,84 @@
+{
+  "ticker": "NVDA",
+  "company": "NVIDIA Corporation",
+  "asOf": "2026-08-15",
+  "financials": {
+    "source": {
+      "label": "Workshop packet: NVIDIA financial highlights",
+      "url": "https://workshop.render.example/packets/2026-08-15/NVDA/financials",
+      "asOf": "2026-08-15"
+    },
+    "revenueUsdB": 130.5,
+    "grossProfitUsdB": 97.9,
+    "operatingIncomeUsdB": 81.4,
+    "notes": [
+      "Data-center revenue is the majority of the packet's trailing-twelve-month mix.",
+      "Gross margin stays elevated versus the packet's prior-year compare.",
+      "Operating expenses grow, but slower than revenue in this packet."
+    ]
+  },
+  "filings": {
+    "source": {
+      "label": "Workshop packet: NVIDIA filing excerpts",
+      "url": "https://workshop.render.example/packets/2026-08-15/NVDA/filings",
+      "asOf": "2026-08-15"
+    },
+    "filingType": "10-Q excerpts (workshop cache)",
+    "excerpts": [
+      "Customer concentration remains high among a small number of cloud providers.",
+      "Export-control rules can limit shipment of certain high-end products.",
+      "Supply of advanced packaging and HBM memory can constrain shipments."
+    ]
+  },
+  "news": {
+    "source": {
+      "label": "Workshop packet: NVIDIA news window",
+      "url": "https://workshop.render.example/packets/2026-08-15/NVDA/news",
+      "asOf": "2026-08-15"
+    },
+    "headlines": [
+      {
+        "title": "Cloud operators repeat multi-year accelerator purchase plans",
+        "url": "https://workshop.render.example/news/nvda-cloud-capex-2026-08",
+        "date": "2026-08-12"
+      },
+      {
+        "title": "Competitors announce inference-focused accelerators for 2027",
+        "url": "https://workshop.render.example/news/nvda-competitor-inference-2026-08",
+        "date": "2026-08-10"
+      },
+      {
+        "title": "Software attach for inference tooling shows up in partner notes",
+        "url": "https://workshop.render.example/news/nvda-software-attach-2026-08",
+        "date": "2026-08-08"
+      }
+    ]
+  },
+  "peers": {
+    "source": {
+      "label": "Workshop packet: NVIDIA peer set",
+      "url": "https://workshop.render.example/packets/2026-08-15/NVDA/peers",
+      "asOf": "2026-08-15"
+    },
+    "comparables": [
+      {
+        "ticker": "AVGO",
+        "company": "Broadcom Inc.",
+        "revenueUsdB": 63.0,
+        "grossMarginPct": 64.0
+      },
+      {
+        "ticker": "AMD",
+        "company": "Advanced Micro Devices, Inc.",
+        "revenueUsdB": 27.8,
+        "grossMarginPct": 51.0
+      },
+      {
+        "ticker": "TSM",
+        "company": "Taiwan Semiconductor Manufacturing Company",
+        "revenueUsdB": 90.1,
+        "grossMarginPct": 56.0
+      }
+    ]
+  }
+}
