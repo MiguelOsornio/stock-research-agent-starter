@@ -1,8 +1,9 @@
 /**
- * workflows.ts — Workflow entry placeholder (tutorial fills this in).
+ * workflows.ts: Workflow entry placeholder (tutorial fills this in).
  *
- * No tasks are registered yet. The tutorial replaces this file and registers
- * several tasks: a root researchStock task plus step tasks for facts, signals,
+ * No tasks are registered yet. The tutorial registers tasks with SDK 1.x:
+ * each task receives a TaskContext and calls other tasks via ctx.run.
+ * Expect a root researchStock task plus step tasks for facts, signals,
  * catalysts, risks, and writeMemo.
  *
  * Start command for the Workflow service: `npm run workflow:start`

@@ -5,12 +5,12 @@
 # Before deploying a fork, namespace resources:
 #   Actions → "Setup attendee Blueprint names" → Run workflow
 #   or: npm run setup -- your-github-username
-# That sets the project to {username}-renderatl-workshop.
+# That sets the project to {username}-cyc-workshop.
 # Then deploy from the Dashboard (New → Blueprint) or CLI.
 
 projects:
-  # After setup: {username}-renderatl-workshop
-  - name: renderatl-workshop
+  # After setup: {username}-cyc-workshop
+  - name: cyc-workshop
     environments:
       - name: production
         services:

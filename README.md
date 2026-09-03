@@ -28,14 +28,14 @@ npm run setup -- your-github-username
 ```
 
 That rewrites `render.yaml` so the Render **project** is
-`your-github-username-renderatl-workshop` (and the web service gets a username
+`your-github-username-cyc-workshop` (and the web service gets a username
 prefix). Commit and push if you ran setup locally.
 
 ### 2. Deploy from the Render Dashboard or CLI
 
 Deploy is **not** done from GitHub. In the [Dashboard](https://dashboard.render.com):
 **New → Blueprint**, select your fork, leave the Blueprint path as `render.yaml`,
-and Apply. That creates `{username}-renderatl-workshop` in your Render workspace.
+and Apply. That creates `{username}-cyc-workshop` in your Render workspace.
 
 ## Key files
 

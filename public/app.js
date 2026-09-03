@@ -109,7 +109,7 @@ async function pollUntilDone(taskRunId) {
     startedAtMs = startedAtFrom(data, startedAtMs)
     localStorage.setItem(KEY_STARTED, String(startedAtMs))
 
-    if (data.status === "completed") {
+    if (data.status === "succeeded" || data.status === "completed") {
       markTrackerDone()
       setStatus(`Completed (${taskRunId})`)
       renderMemo(data.memo)

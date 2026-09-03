@@ -3,7 +3,7 @@
  *
  * Rewrites render.yaml so each fork gets unique Render resource names:
  *
- *   Project  →  {username}-renderatl-workshop
+ *   Project  →  {username}-cyc-workshop
  *   Service  →  {username}-stock-research-agent-starter
  *
  * Run locally:
@@ -29,9 +29,9 @@ const DEFAULT_BLUEPRINTS = ['render.yaml']
 
 /**
  * Every attendee project ends with this suffix.
- * Example: username "Ada.Lovelace" → project "ada-lovelace-renderatl-workshop"
+ * Example: username "Ada.Lovelace" → project "ada-lovelace-cyc-workshop"
  */
-const PROJECT_SUFFIX = 'renderatl-workshop'
+const PROJECT_SUFFIX = 'cyc-workshop'
 
 /**
  * Known resource names in this starter.
@@ -40,7 +40,7 @@ const PROJECT_SUFFIX = 'renderatl-workshop'
  */
 const BASE_RESOURCE_NAMES = [
   'stock-research-agent-starter',
-  'renderatl-workshop',
+  'cyc-workshop',
 ]
 
 // Path helpers: find this file, then its parent folder (the repo root).
@@ -94,7 +94,7 @@ function normalizeNamespace(value) {
   return namespace
 }
 
-/** Build the Render project name: `{username}-renderatl-workshop`. */
+/** Build the Render project name: `{username}-cyc-workshop`. */
 function projectNameFor(namespace) {
   return `${namespace}-${PROJECT_SUFFIX}`
 }
@@ -147,7 +147,7 @@ function collectNameChange(map, namespace, nameChanges, changedNames) {
 
 /**
  * Rename the Render *project*.
- * Always becomes `{username}-renderatl-workshop` (workshop requirement).
+ * Always becomes `{username}-cyc-workshop` (workshop requirement).
  */
 function collectProjectNameChange(map, namespace, changedNames) {
   const currentName = getStringAt(map, 'name')

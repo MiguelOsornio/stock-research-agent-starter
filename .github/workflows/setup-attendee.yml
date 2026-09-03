@@ -1,7 +1,7 @@
 # Setup attendee Blueprint names
 #
 # Manual workflow (Actions → Run workflow). Edits render.yaml so the project
-# becomes {username}-renderatl-workshop, then commits to the fork.
+# becomes {username}-cyc-workshop, then commits to the fork.
 # Does not deploy: use Render Dashboard → New → Blueprint (or the CLI) after.
 
 name: Setup attendee Blueprint names
@@ -54,5 +54,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Namespace Render resources for ${GITHUB_ACTOR} (${GITHUB_ACTOR}-renderatl-workshop)"
+          git commit -m "Namespace Render resources for ${GITHUB_ACTOR} (${GITHUB_ACTOR}-cyc-workshop)"
           git push
