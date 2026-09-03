@@ -1,5 +1,3 @@
-import { WorkshopConfigError } from "./errors.js"
-
 const failedJobIds = new Set<string>()
 
 export class NewsSourceUnavailable extends Error {
@@ -7,12 +5,6 @@ export class NewsSourceUnavailable extends Error {
     super(`News source returned HTTP 503 for job ${jobId}`)
     this.name = "NewsSourceUnavailable"
   }
-}
-
-/** True when this process is a Workflow task runner, not the web service. */
-export function isWorkflowProcess(): boolean {
-  if (process.env.RENDER_WORKFLOW === "1") return true
-  return Boolean(process.env.RENDER_SDK_SOCKET_PATH)
 }
 
 function probeUrl(jobId: string): string | null {
@@ -23,7 +15,7 @@ function probeUrl(jobId: string): string | null {
 
 /**
  * Fail the first probe for a job ID, then succeed.
- * Request-bound runs use in-process state. Workflow retries must use NEWS_FAIL_ENDPOINT.
+ * Request-bound runs use in-process state. Workflow retries use the web endpoint.
  */
 export async function probeNewsSource(jobId: string): Promise<void> {
   const url = probeUrl(jobId)
@@ -38,12 +30,6 @@ export async function probeNewsSource(jobId: string): Promise<void> {
       throw new Error(`News source probe failed (${response.status})`)
     }
     return
-  }
-
-  if (isWorkflowProcess()) {
-    throw new WorkshopConfigError(
-      "NEWS_FAIL_ENDPOINT is not set on this Workflow service. Set it to https://<your-web-service>.onrender.com/api/workshop/news-source and redeploy.",
-    )
   }
 
   if (!failedJobIds.has(jobId)) {

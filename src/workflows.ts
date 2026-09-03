@@ -98,9 +98,3 @@ export const researchCompanyTask = task(
 console.log(
   "Registered Workflow tasks: researchCompany, analyzeFinancials, analyzeFilings, analyzeNews, comparePeers, writeResearchBrief",
 )
-
-if (!process.env.NEWS_FAIL_ENDPOINT?.trim()) {
-  console.warn(
-    "NEWS_FAIL_ENDPOINT is not set. Fail-once news retries will not work on this Workflow service. Set it to https://<your-web-service>.onrender.com/api/workshop/news-source and redeploy.",
-  )
-}

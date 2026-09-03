@@ -10,12 +10,7 @@ import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { ClientError, ServerError } from "@renderinc/sdk"
-import {
-  recordNewsProbe,
-  ResearchStepFailed,
-  type ResearchInput,
-} from "./research/index.js"
-import { handleRequestBound } from "./retry-in-request.js"
+import { recordNewsProbe, researchCompany, type ResearchInput } from "./research/index.js"
 import {
   allowStart,
   isTaskRunId,
@@ -47,9 +42,6 @@ function sendIndex(res: express.Response): void {
     /<link\s+rel="stylesheet"\s+href="\/styles\.css[^"]*"\s*\/?>/,
     `<style>\n${css}\n</style>`,
   )
-  if (process.env.SHOW_PUBLIC_HEADER === "true") {
-    html = html.replace(' hidden="until-public"', "")
-  }
   res.type("html").set("Cache-Control", "no-cache").send(html)
 }
 
@@ -89,7 +81,7 @@ app.get("/api/workshop/news-source/:jobId", (req, res) => {
   }
   const status = recordNewsProbe(jobId)
   if (status === "unavailable") {
-    res.status(503).json({ ok: false, reason: "fail-once" })
+    res.status(503).json({ error: "News source unavailable" })
     return
   }
   res.status(200).json({ ok: true })
@@ -110,18 +102,9 @@ app.post("/api/research", async (req, res) => {
     // TODO(workshop): replace the next two lines with:
     // const started = await startWorkflowRun(parsed)
     // res.status(202).json(started)
-    const started = await startWorkflowRun(parsed)
-    res.status(202).json(started)
+    const memo = await researchCompany(parsed)
+    res.json(memo)
   } catch (err) {
-    if (err instanceof ResearchStepFailed) {
-      res.status(500).json({
-        error: publicMessage(err),
-        failedStep: err.failedStep,
-        completedSteps: err.completedSteps,
-        brief: null,
-      })
-      return
-    }
     res.status(500).json({ error: publicMessage(err) })
   }
 })
@@ -135,16 +118,16 @@ app.get("/api/research/:taskRunId", async (req, res) => {
 
   try {
     const details = await renderClient().workflows.getTaskRun(taskRunId)
-    // SDK 1.0.0 TaskRunStatus.COMPLETED is deprecated. Terminal success is "succeeded".
     const body = {
       taskRunId: details.id,
       status: details.status,
       startedAt: details.startedAt ?? null,
       completedAt: details.completedAt ?? null,
-      brief: details.status === "succeeded" ? (details.results?.[0] ?? null) : null,
+      memo:
+        details.status === "completed" || details.status === "succeeded"
+          ? (details.results?.[0] ?? null)
+          : null,
       error: details.error ?? null,
-      retries: details.retries,
-      attempts: details.attempts ?? [],
     }
     res.status(200).json(body)
   } catch (err) {

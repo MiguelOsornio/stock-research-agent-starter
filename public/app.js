@@ -1,22 +1,12 @@
-const STORAGE_KEY = "researchRun.v1"
+const STORAGE_KEY = "closeTheTabRun.v1"
 const TOKEN_KEY = "workshopToken.v1"
-const DASHBOARD_URL = "https://dashboard.render.com"
-const STEP_LABELS = [
-  ["analyzeFinancials", "Financials"],
-  ["analyzeFilings", "Filings"],
-  ["comparePeers", "Peers"],
-  ["analyzeNews", "News"],
-  ["writeResearchBrief", "Brief"],
-]
 
 const form = document.getElementById("research-form")
 const tickerInput = document.getElementById("ticker")
 const failNewsInput = document.getElementById("fail-news")
-const retryInput = document.getElementById("retry-in-request")
 const tokenInput = document.getElementById("workshop-token")
 const submit = document.getElementById("submit")
 const statusEl = document.getElementById("status")
-const stepsEl = document.getElementById("steps")
 const memoEl = document.getElementById("memo")
 const runPanel = document.getElementById("run-panel")
 const runIdEl = document.getElementById("run-id")
@@ -39,84 +29,30 @@ function setStatus(text) {
   statusEl.textContent = text
 }
 
-function lineFor(id, label, completedSteps, failedStep, error, seenBefore) {
-  const done = completedSteps.includes(id)
-  const failed = failedStep === id
-  const again = done && seenBefore.has(id) ? " (again)" : ""
-  if (failed) {
-    const detail = error ? ` (${error})` : ""
-    return `${label.padEnd(12)}failed${detail}`
-  }
-  if (id === "writeResearchBrief" && !done) {
-    return `${label.padEnd(12)}not written`
-  }
-  if (done) return `${label.padEnd(12)}done${again}`
-  return `${label.padEnd(12)}not run`
-}
-
-function renderStepPanel(data) {
-  const lines = []
-  if (data.attempts?.length) {
-    const seen = new Set()
-    for (const attempt of data.attempts) {
-      lines.push(`Attempt ${attempt.attempt}`)
-      const completed = attempt.completedSteps || []
-      for (const [id, label] of STEP_LABELS) {
-        lines.push(
-          lineFor(id, label, completed, attempt.failedStep, data.error, seen),
-        )
-      }
-      for (const id of completed) seen.add(id)
-      lines.push("")
-    }
-  } else {
-    const completed = data.completedSteps || []
-    const seen = new Set()
-    for (const [id, label] of STEP_LABELS) {
-      lines.push(lineFor(id, label, completed, data.failedStep, data.error, seen))
-    }
-  }
-  stepsEl.hidden = false
-  stepsEl.textContent = lines.join("\n").trimEnd()
-}
-
-function renderWorkflowStatus(data) {
-  const lines = [`Root status: ${data.status}`]
-  if (data.retries != null) lines.push(`Root retries: ${data.retries}`)
-  lines.push("Open the run in the Render Dashboard to see each step")
-  lines.push(DASHBOARD_URL)
-  stepsEl.hidden = false
-  stepsEl.textContent = lines.join("\n")
-}
-
-function renderBrief(brief) {
-  if (!brief) {
-    memoEl.hidden = true
-    return
-  }
+function renderMemo(memo) {
   memoEl.hidden = false
-  const citations = (brief.citations || [])
+  const citations = (memo.citations || [])
     .map((citation) => `- ${citation.label} (${citation.asOf}): ${citation.url}`)
     .join("\n")
   memoEl.textContent = [
-    `${brief.company} (${brief.ticker})`,
-    `Packet date: ${brief.asOf || "n/a"}`,
-    `Synthesis: ${brief.synthesisMode || "unknown"}`,
+    `${memo.company} (${memo.ticker})`,
+    `Packet date: ${memo.asOf || "n/a"}`,
+    `Synthesis: ${memo.synthesisMode || "unknown"}`,
     "",
     "Financials:",
-    brief.financials || "",
+    memo.financials || "",
     "",
     "Filings:",
-    brief.filings || "",
+    memo.filings || "",
     "",
     "News:",
-    brief.news || "",
+    memo.news || "",
     "",
     "Peers:",
-    brief.peers || "",
+    memo.peers || "",
     "",
     "Summary:",
-    brief.summary || "",
+    memo.summary || "",
     "",
     "Citations:",
     citations,
@@ -156,7 +92,7 @@ function hideRun() {
 }
 
 function isDone(status) {
-  return status === "succeeded"
+  return status === "completed" || status === "succeeded"
 }
 
 async function readJson(res) {
@@ -172,7 +108,6 @@ async function readJson(res) {
 async function pollUntilDone(record) {
   showRun(record, "pending")
   setStatus(`Task-run ID ${record.taskRunId}`)
-  renderWorkflowStatus({ status: "pending" })
 
   while (true) {
     let res
@@ -204,11 +139,10 @@ async function pollUntilDone(record) {
     }
 
     showRun(record, data.status)
-    renderWorkflowStatus(data)
 
     if (isDone(data.status)) {
       setStatus(`Status: ${data.status}`)
-      renderBrief(data.brief)
+      if (data.memo) renderMemo(data.memo)
       return
     }
 
@@ -225,7 +159,6 @@ async function pollUntilDone(record) {
 form.addEventListener("submit", async (event) => {
   event.preventDefault()
   memoEl.hidden = true
-  stepsEl.hidden = true
   submit.disabled = true
   sessionStorage.setItem(TOKEN_KEY, tokenInput.value.trim())
   setStatus("Request running…")
@@ -244,16 +177,13 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify({
         ticker: tickerInput.value,
         failNews: failNewsInput.checked,
-        retryInRequest: retryInput.checked,
       }),
       cache: "no-store",
     })
     const data = await readJson(res)
+    if (!res.ok) throw new Error(data.error || "Request failed")
 
     if (data.taskRunId) {
-      if (retryInput.checked) {
-        setStatus("Not used with Workflows: retries are configured per task")
-      }
       const record = {
         taskRunId: data.taskRunId,
         statusUrl: data.statusUrl || `/api/research/${data.taskRunId}`,
@@ -265,15 +195,8 @@ form.addEventListener("submit", async (event) => {
       return
     }
 
-    if (data.failedStep || data.completedSteps) renderStepPanel(data)
-    if (!res.ok) {
-      setStatus(data.error || "Request failed")
-      return
-    }
-
     setStatus("Done. This response had no task-run ID, so a reload cannot look it up.")
-    renderStepPanel(data)
-    renderBrief(data.brief)
+    renderMemo(data)
   } catch (err) {
     if (previous) saveRecord(previous)
     setStatus(err instanceof Error ? err.message : "Request failed")
@@ -287,7 +210,6 @@ startOver.addEventListener("click", () => {
   forgetRecord()
   hideRun()
   memoEl.hidden = true
-  stepsEl.hidden = true
   setStatus("")
 })
 
@@ -295,7 +217,6 @@ forgetRun.addEventListener("click", () => {
   forgetRecord()
   hideRun()
   memoEl.hidden = true
-  stepsEl.hidden = true
   setStatus("")
 })
 

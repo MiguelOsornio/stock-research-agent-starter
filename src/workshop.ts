@@ -60,7 +60,6 @@ export function isTaskRunId(value: string): boolean {
 export function parseResearchInput(body: {
   ticker?: unknown
   failNews?: unknown
-  retryInRequest?: unknown
 }): ResearchInput | { error: string } {
   const ticker = String(body.ticker ?? "").trim().toUpperCase()
   if (!ticker) return { error: "ticker is required" }
@@ -71,6 +70,5 @@ export function parseResearchInput(body: {
     ticker,
     jobId: `job-${randomUUID()}`,
     failNews: Boolean(body.failNews),
-    retryInRequest: Boolean(body.retryInRequest),
   }
 }

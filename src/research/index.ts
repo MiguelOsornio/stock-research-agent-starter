@@ -2,13 +2,7 @@ export { analyzeFilings } from "./analyze-filings.js"
 export { analyzeFinancials } from "./analyze-financials.js"
 export { analyzeNews } from "./analyze-news.js"
 export { comparePeers } from "./compare-peers.js"
-export { ResearchStepFailed, WorkshopConfigError, RESEARCH_STEPS } from "./errors.js"
-export {
-  NewsSourceUnavailable,
-  isWorkflowProcess,
-  recordNewsProbe,
-  resetNewsProbes,
-} from "./fail-news.js"
+export { recordNewsProbe, resetNewsProbes } from "./fail-news.js"
 export {
   knownTickers,
   loadPacket,

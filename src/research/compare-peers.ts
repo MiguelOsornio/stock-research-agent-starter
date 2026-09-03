@@ -1,10 +1,8 @@
-import { stepDelay } from "./delay.js"
 import { loadPacket } from "./packets.js"
 import type { PeerAnalysis, ResearchInput } from "./types.js"
 
 /** Compare packet peers on revenue and gross margin. */
 export async function comparePeers(input: ResearchInput): Promise<PeerAnalysis> {
-  await stepDelay()
   const packet = loadPacket(input.ticker)
   const { peers } = packet
   const names = peers.comparables.map((peer) => peer.ticker)

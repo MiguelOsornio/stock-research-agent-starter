@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "build": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test src/retry-in-request.test.ts src/research/*.test.ts",
+    "test": "tsx --test src/research/*.test.ts",
     "workflow:start": "tsx src/workflows.ts"
   },
   "engines": {
