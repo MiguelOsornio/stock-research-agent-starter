@@ -1,123 +1,33 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
-
 :root {
   color-scheme: light;
-  --bg: var(--color-background, #ffffff);
-  --ink: var(--color-foreground, #18181b);
-  --muted: var(--color-muted-foreground, #71717a);
-  --accent: var(--color-primary, #9333ea);
-  --card: var(--color-card, #ffffff);
-  --line: var(--color-border, #e4e4e7);
-  font-family: Inter, "Segoe UI", sans-serif;
+  --bg: #f3efe6;
+  --ink: #1c1917;
+  --muted: #57534e;
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+  --card: #fffdf8;
+  --line: #d6d3d1;
+  --ok: #15803d;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html,
 body {
-  min-height: 100vh;
   margin: 0;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: inherit;
-}
-
-.site-header,
-.site-footer {
-  flex-shrink: 0;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
-}
-
-.site-footer {
-  border-bottom: 0;
-  border-top: 1px solid var(--line);
-  margin-top: auto;
-}
-
-.header-inner,
-.footer-inner {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  max-width: 56rem;
-  margin: 0 auto;
-  padding: 0.75rem 1.25rem;
-}
-
-.header-inner {
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 3.5rem;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-weight: 600;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.header-actions .short {
-  display: none;
-}
-
-.footer-inner {
-  justify-content: center;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-  text-align: center;
-}
-
-.footer-inner a {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.footer-inner a:hover {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, #d9f99d55, transparent 40%),
+    linear-gradient(160deg, #f3efe6, #e7e5e4);
   color: var(--ink);
 }
 
 .shell {
-  flex: 1 1 auto;
   max-width: 42rem;
   margin: 0 auto;
-  padding: 2rem 1.25rem 3rem;
-  width: 100%;
-}
-
-@media (max-width: 640px) {
-  .header-actions .full {
-    display: none;
-  }
-
-  .header-actions .short {
-    display: inline;
-  }
-}
-
-.banner {
-  margin: 0 0 1rem;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  color: var(--muted);
-  font-size: 0.85rem;
+  padding: 3rem 1.25rem 4rem;
 }
 
 h1 {
@@ -132,9 +42,7 @@ h1 {
   line-height: 1.5;
 }
 
-form,
-.run-panel,
-.memo {
+form {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -151,7 +59,6 @@ label {
 .row {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
 input {
@@ -160,30 +67,7 @@ input {
   border-radius: 8px;
   padding: 0.7rem 0.8rem;
   font: inherit;
-}
-
-#ticker {
   text-transform: uppercase;
-}
-
-#workshop-token {
-  width: 100%;
-  margin-top: 0.35rem;
-  text-transform: none;
-}
-
-.check-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.85rem 0 0.85rem;
-  font-weight: 500;
-}
-
-.check-row input {
-  flex: none;
-  width: 1rem;
-  height: 1rem;
 }
 
 button {
@@ -197,53 +81,147 @@ button {
   cursor: pointer;
 }
 
-button.secondary {
-  background: transparent;
-  color: var(--ink);
-  border: 1px solid var(--line);
-}
-
 button:disabled {
   opacity: 0.6;
   cursor: wait;
 }
 
-.hint,
-.status,
-.run-kicker {
+.hint {
+  margin: 0.6rem 0 0;
   color: var(--muted);
   font-size: 0.85rem;
 }
 
-.hint {
-  margin: 0.6rem 0 0;
-}
-
-.run-panel {
+.status {
   margin-top: 1rem;
+  color: var(--muted);
 }
 
-.run-kicker {
-  margin: 0 0 0.4rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.tracker {
+  margin-top: 1rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.tracker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.tracker-kicker {
+  margin: 0;
   font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--accent);
 }
 
-.status {
-  margin-top: 1rem;
+.tracker-label {
+  margin: 0.2rem 0 0;
+  font-weight: 600;
+}
+
+.tracker-percent {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.tracker-bar {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #e7e5e4;
+  overflow: hidden;
+}
+
+.tracker-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), #14b8a6);
+  transition: width 0.35s ease;
+}
+
+.tracker-fill.is-active {
+  animation: tracker-pulse 1.4s ease-in-out infinite;
+}
+
+.tracker-steps {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.tracker-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.tracker-steps li::before {
+  content: "";
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.tracker-steps li.is-done {
+  color: var(--ink);
+}
+
+.tracker-steps li.is-done::before {
+  border-color: var(--ok);
+  background: var(--ok);
+  box-shadow: inset 0 0 0 2px var(--card);
+}
+
+.tracker-steps li.is-active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.tracker-steps li.is-active::before {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px #99f6e455;
+}
+
+.tracker-note {
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .memo {
   margin-top: 1rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
   white-space: pre-wrap;
   line-height: 1.45;
 }
 
-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.9em;
-  word-break: break-all;
+@keyframes tracker-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
 }

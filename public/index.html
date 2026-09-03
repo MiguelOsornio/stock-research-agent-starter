@@ -3,47 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stock research with Workflows</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/render-dds.css" />
-    <link rel="stylesheet" href="/styles.css?v=5" />
+    <title>Stock research starter</title>
+    <link rel="stylesheet" href="/styles.css?v=2" />
   </head>
   <body>
-    <header class="site-header">
-      <div class="header-inner">
-        <div class="brand">
-          <img src="/favicon.svg" alt="" width="24" height="24" />
-          <span class="brand-name">Stock research</span>
-        </div>
-        <nav class="header-actions" aria-label="Render">
-          <a
-            class="dds-btn-primary"
-            href="https://render.com/deploy?repo=https://github.com/ojusave/stock-research-agent-starter"
-          >
-            <span class="full">Deploy to Render</span>
-            <span class="short">Deploy</span>
-          </a>
-          <a
-            class="dds-btn-ghost"
-            href="https://dashboard.render.com/register?utm_source=github&amp;utm_medium=referral&amp;utm_campaign=ojus_demos&amp;utm_content=navbar_button"
-          >
-            <span class="full">Sign up on Render</span>
-            <span class="short">Sign up</span>
-          </a>
-        </nav>
-      </div>
-    </header>
-
     <main class="shell">
-      <p class="banner">
-        Workshop sample. Not a production job system. Dated source packets as of
-        2026-08-15. Not investment advice. Revoke the API key during cleanup.
-      </p>
       <h1>Stock research</h1>
       <p class="lede">
-        Analyze financials, filings, news, and peers in parallel, then write one
-        cited brief. The first deploy waits inside one HTTP request. After the
-        tutorial edit, you get a task-run ID you can reopen.
+        Enter a ticker. Multi-step research still runs inside this one request
+        until the memo is ready.
       </p>
       <form id="research-form">
         <label for="ticker">Ticker</label>
@@ -56,58 +24,37 @@
             autocomplete="off"
             required
           />
-          <button type="submit" id="submit">Start job</button>
+          <button type="submit" id="submit">Research</button>
         </div>
-        <label class="check-row">
-          <input id="fail-news" type="checkbox" />
-          Fail the news source once
-        </label>
-        <label for="workshop-token">Workshop token</label>
-        <input
-          id="workshop-token"
-          name="workshop-token"
-          type="password"
-          autocomplete="off"
-          placeholder="Leave blank unless the organizer gave you one"
-        />
-        <p class="hint">
-          Packets: NVDA, AAPL, MSFT. Check the box only for the late-failure and
-          retry exercises.
-        </p>
+        <p class="hint">Mock tickers: NVDA, AAPL, MSFT</p>
       </form>
 
-      <section id="run-panel" class="run-panel" hidden>
-        <p class="run-kicker">Saved run</p>
-        <p>Task-run ID: <code id="run-id"></code></p>
-        <p>Status: <span id="run-status"></span></p>
-        <div class="row">
-          <button type="button" id="start-over" class="secondary">Start over</button>
-          <button type="button" id="forget-run" class="secondary" hidden>
-            Forget this run
-          </button>
+      <section id="tracker" class="tracker" hidden aria-live="polite">
+        <div class="tracker-head">
+          <div>
+            <p class="tracker-kicker">Live tracker</p>
+            <p id="tracker-label" class="tracker-label">Starting…</p>
+          </div>
+          <span id="tracker-percent" class="tracker-percent">0%</span>
         </div>
+        <div class="tracker-bar" aria-hidden="true">
+          <div id="tracker-fill" class="tracker-fill"></div>
+        </div>
+        <ol id="tracker-steps" class="tracker-steps">
+          <li data-step="0">Load company facts</li>
+          <li data-step="1">Collect signals</li>
+          <li data-step="2">Identify catalysts</li>
+          <li data-step="3">Identify risks</li>
+          <li data-step="4">Write memo</li>
+        </ol>
+        <p id="tracker-note" class="tracker-note">
+          Bound to this open request. Close the tab and there is nothing to resume.
+        </p>
       </section>
 
       <p id="status" class="status" hidden></p>
       <pre id="memo" class="memo" hidden></pre>
     </main>
-
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <a
-          href="https://github.com/ojusave/stock-research-agent-starter"
-          target="_blank"
-          rel="noopener noreferrer"
-          >GitHub</a
-        >
-        <a
-          href="https://render.com/docs/workflows"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Workflows docs</a
-        >
-      </div>
-    </footer>
-    <script src="/app.js?v=5" type="module"></script>
+    <script src="/app.js?v=2" type="module"></script>
   </body>
 </html>

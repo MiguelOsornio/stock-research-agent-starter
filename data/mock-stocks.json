@@ -1,0 +1,56 @@
+{
+  "NVDA": {
+    "company": "NVIDIA Corporation",
+    "signals": [
+      "Data-center GPU demand remains elevated in mock filings.",
+      "Supply commentary mentions constrained high-end SKUs.",
+      "Customer concentration in large cloud providers stays high."
+    ],
+    "catalysts": [
+      "Next product cycle announcement window",
+      "Cloud capex commentary from major customers",
+      "Software attach for inference tooling"
+    ],
+    "risks": [
+      "Customer capex digestion",
+      "Competitive accelerators",
+      "Export-control headlines"
+    ]
+  },
+  "AAPL": {
+    "company": "Apple Inc.",
+    "signals": [
+      "Services mix continues to expand in mock segment data.",
+      "Hardware upgrade cycles look uneven across regions.",
+      "Regulatory attention on store policies remains active."
+    ],
+    "catalysts": [
+      "Next installed-base hardware refresh",
+      "Services pricing and attach experiments",
+      "On-device AI feature launches"
+    ],
+    "risks": [
+      "Regulatory remedies",
+      "China demand variability",
+      "Hardware ASP pressure"
+    ]
+  },
+  "MSFT": {
+    "company": "Microsoft Corporation",
+    "signals": [
+      "Cloud growth commentary stays solid in mock notes.",
+      "AI product packaging appears across enterprise SKUs.",
+      "Security portfolio cross-sell shows up in deal mentions."
+    ],
+    "catalysts": [
+      "Azure AI consumption ramps",
+      "Office Copilot seat expansion",
+      "Security suite renewals"
+    ],
+    "risks": [
+      "AI infrastructure cost timing",
+      "Enterprise IT budget scrutiny",
+      "Competition in cloud and productivity"
+    ]
+  }
+}

@@ -1,22 +1,29 @@
 # yaml-language-server: $schema=https://render.com/schema/render.yaml.json
 #
-# Blueprint for the request-bound web service only.
-# Create the Workflow service later in the Dashboard.
+# Render Blueprint: one project + one web service.
+#
+# Before deploying a fork, namespace resources:
+#   Actions → "Setup attendee Blueprint names" → Run workflow
+#   or: npm run setup -- your-github-username
+# That sets the project to {username}-renderatl-workshop.
+# Then deploy from the Dashboard (New → Blueprint) or CLI.
 
-# If this name is taken in a shared workspace, change it before deploy
-# (for example stock-research-web-<github-username>).
-services:
-  - type: web
-    name: stock-research-agent-starter
-    runtime: node
-    plan: starter
-    buildCommand: npm ci
-    startCommand: npm start
-    healthCheckPath: /healthz
-    envVars:
-      - key: NODE_VERSION
-        value: "20"
-      - key: MODEL_BASE_URL
-        value: "https://api.openai.com/v1"
-      - key: MODEL_NAME
-        value: "gpt-4o-mini"
+projects:
+  # After setup: {username}-renderatl-workshop
+  - name: renderatl-workshop
+    environments:
+      - name: production
+        services:
+          - type: web
+            name: stock-research-agent-starter
+            runtime: node
+            plan: starter
+            buildCommand: npm install
+            startCommand: npm start
+            healthCheckPath: /healthz
+            envVars:
+              - key: NODE_VERSION
+                value: "20"
+              # Delay so you can close the tab mid-run in the tutorial.
+              - key: RESEARCH_DELAY_MS
+                value: "8000"
